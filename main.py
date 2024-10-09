@@ -11,11 +11,11 @@ def create_connection(with_database=True):
     connection = None
     try:
         #print connection details for debugging purposes
-        print(f"Attempting to connect to:")
-        print(f"Host: {os.getenv('DB_HOST')}")
-        print(f"User: {os.getenv('DB_USER')}")
-        if with_database:
-            print(f"Database: {os.getenv('DB_NAME')}")
+        #print(f"Attempting to connect to:")
+        #print(f"Host: {os.getenv('DB_HOST')}")
+        #print(f"User: {os.getenv('DB_USER')}")
+        # if with_database:
+        #     print(f"Database: {os.getenv('DB_NAME')}")
 
         #establish connection to the database
         if with_database:
@@ -34,7 +34,7 @@ def create_connection(with_database=True):
                 password=os.getenv('DB_PASS')
             )
         #debug message
-        print("Successfully connected to the database")
+        # print("Successfully connected to the database")
     except Error as e:
         print(f"Error connecting to MySQL: {e}")
         print(f"Error Code: {e.errno}")
@@ -55,7 +55,7 @@ def create_database(connection):
     except Error as e:
         print(f"Error creating database: {e}")
 
-#create the influencers table
+#create influencers table
 def create_influencers_table(connection):
     print("Creating influencers table...")
     create_table_query = """
@@ -74,7 +74,7 @@ def create_influencers_table(connection):
     except Error as e:
         print(f"Error creating influencers table: {e}")
 
-#create the content table / logic is same as influencer table
+#create content table / logic is same as influencer table
 def create_content_table(connection):
     print("Creating content table...")
     create_table_query = """
@@ -95,7 +95,27 @@ def create_content_table(connection):
     except Error as e:
         print(f"Error creating content table: {e}")
 
-#create the votes table
+#create comments table / logic is same as influencer table
+def create_comments_table(connection):
+    print("Creating comments table...")
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        content_id INT,
+        comment_text TEXT NOT NULL,
+        sentiment_score DECIMAL(5, 2),
+        FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+    );
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(create_table_query)
+            connection.commit()
+            print("Table 'comments' created successfully.")
+    except Error as e:
+        print(f"Error creating comments table: {e}")
+
+#create votes table / logic is same as influencer table
 def create_votes_table(connection):
     print("Creating votes table...")
     create_table_query = """
@@ -129,6 +149,7 @@ def main():
     if connection:
         create_influencers_table(connection)                #create influencers table
         create_content_table(connection)                    #create content table
+        create_comments_table(connection)                   #create comments table
         create_votes_table(connection)                      #create votes table
 
         connection.close()
