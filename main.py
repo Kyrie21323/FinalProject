@@ -3,21 +3,23 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 
-# Load environment variables from .env file
+#load variables from the .env file
 load_dotenv()
 
+#the function can either connect with or without specifying a database
 def create_connection(with_database=True):
     connection = None
     try:
-        # Print connection details
+        #print connection details for debugging purposes
         print(f"Attempting to connect to:")
         print(f"Host: {os.getenv('DB_HOST')}")
         print(f"User: {os.getenv('DB_USER')}")
         if with_database:
             print(f"Database: {os.getenv('DB_NAME')}")
 
-        # Connect with or without specifying the database
+        #establish connection to the database
         if with_database:
+            #if the database is already created, connect with it
             connection = mysql.connector.connect(
                 host=os.getenv('DB_HOST'),
                 user=os.getenv('DB_USER'),
@@ -25,30 +27,35 @@ def create_connection(with_database=True):
                 database=os.getenv('DB_NAME')
             )
         else:
+            #when creating the database - without specifying
             connection = mysql.connector.connect(
                 host=os.getenv('DB_HOST'),
                 user=os.getenv('DB_USER'),
                 password=os.getenv('DB_PASS')
             )
-
+        #debug message
         print("Successfully connected to the database")
     except Error as e:
         print(f"Error connecting to MySQL: {e}")
         print(f"Error Code: {e.errno}")
         print(f"SQL State: {e.sqlstate}")
         print(f"Error Message: {e.msg}")
+    
     return connection
 
+#create the database if it doesn't already exist
 def create_database(connection):
     print("Creating database...")
     create_db_query = f"CREATE DATABASE IF NOT EXISTS {os.getenv('DB_NAME')};"
     try:
+        #create database with SQL query
         with connection.cursor() as cursor:
             cursor.execute(create_db_query)
             print(f"Database '{os.getenv('DB_NAME')}' created or already exists.")
     except Error as e:
         print(f"Error creating database: {e}")
 
+#create the influencers table
 def create_influencers_table(connection):
     print("Creating influencers table...")
     create_table_query = """
@@ -59,13 +66,15 @@ def create_influencers_table(connection):
     );
     """
     try:
+        #execute query to create table
         with connection.cursor() as cursor:
             cursor.execute(create_table_query)
-            connection.commit()
+            connection.commit()  #changes committed to the database
             print("Table 'influencers' created successfully.")
     except Error as e:
         print(f"Error creating influencers table: {e}")
 
+#create the content table / logic is same as influencer table
 def create_content_table(connection):
     print("Creating content table...")
     create_table_query = """
@@ -86,6 +95,7 @@ def create_content_table(connection):
     except Error as e:
         print(f"Error creating content table: {e}")
 
+#create the votes table
 def create_votes_table(connection):
     print("Creating votes table...")
     create_table_query = """
@@ -106,44 +116,23 @@ def create_votes_table(connection):
     except Error as e:
         print(f"Error creating votes table: {e}")
 
-def add_influencer(connection):
-    name = input("Enter influencer name: ")
-    vibe_score = float(input("Enter influencer vibe score: "))
-
-    query = """
-    INSERT INTO influencers (name, vibe_score)
-    VALUES (%s, %s)
-    """
-    values = (name, vibe_score)
-
-    try:
-        with connection.cursor() as cursor:
-            print("Inserting influencer into database...")  # Debugging line
-            cursor.execute(query, values)
-            connection.commit()
-            print(f"Influencer added with ID: {cursor.lastrowid}")
-    except Error as e:
-        print(f"Error adding influencer: {e}")
-
-
+#main function that creates the database and tables
 def main():
-    # Connect without specifying the database first to create it
+    #connect without specifying the database first to see if it doesn't exist
     connection = create_connection(with_database=False)
     if connection:
-        create_database(connection)
+        create_database(connection)                         #create if it doesn't exist
         connection.close()
 
-    # Connect with the database specified and create tables
+    #connect to the created database and create the tables
     connection = create_connection(with_database=True)
     if connection:
-        create_influencers_table(connection)
-        create_content_table(connection)
-        create_votes_table(connection)
-        
-        # Option to manually add sample influencers
-        add_influencer(connection)
+        create_influencers_table(connection)                #create influencers table
+        create_content_table(connection)                    #create content table
+        create_votes_table(connection)                      #create votes table
 
         connection.close()
 
+#check if the script is run directly
 if __name__ == "__main__":
     main()
