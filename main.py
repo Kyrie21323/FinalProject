@@ -3,12 +3,20 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 
-# Load the environment variables from .env file
+# Load environment variables from .env file
 load_dotenv()
 
 def create_connection(with_database=True):
     connection = None
     try:
+        # Print connection details
+        print(f"Attempting to connect to:")
+        print(f"Host: {os.getenv('DB_HOST')}")
+        print(f"User: {os.getenv('DB_USER')}")
+        if with_database:
+            print(f"Database: {os.getenv('DB_NAME')}")
+
+        # Connect with or without specifying the database
         if with_database:
             connection = mysql.connector.connect(
                 host=os.getenv('DB_HOST'),
@@ -22,13 +30,17 @@ def create_connection(with_database=True):
                 user=os.getenv('DB_USER'),
                 password=os.getenv('DB_PASS')
             )
-        if connection.is_connected():
-            print("Connection successful!")
+
+        print("Successfully connected to the database")
     except Error as e:
-        print(f"Error: {e}")
+        print(f"Error connecting to MySQL: {e}")
+        print(f"Error Code: {e.errno}")
+        print(f"SQL State: {e.sqlstate}")
+        print(f"Error Message: {e.msg}")
     return connection
 
 def create_database(connection):
+    print("Creating database...")
     create_db_query = f"CREATE DATABASE IF NOT EXISTS {os.getenv('DB_NAME')};"
     try:
         with connection.cursor() as cursor:
@@ -38,6 +50,7 @@ def create_database(connection):
         print(f"Error creating database: {e}")
 
 def create_influencers_table(connection):
+    print("Creating influencers table...")
     create_table_query = """
     CREATE TABLE IF NOT EXISTS influencers (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,6 +67,7 @@ def create_influencers_table(connection):
         print(f"Error creating influencers table: {e}")
 
 def create_content_table(connection):
+    print("Creating content table...")
     create_table_query = """
     CREATE TABLE IF NOT EXISTS content (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -73,6 +87,7 @@ def create_content_table(connection):
         print(f"Error creating content table: {e}")
 
 def create_votes_table(connection):
+    print("Creating votes table...")
     create_table_query = """
     CREATE TABLE IF NOT EXISTS votes (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,62 +106,43 @@ def create_votes_table(connection):
     except Error as e:
         print(f"Error creating votes table: {e}")
 
-def add_sample_data(connection):
-    sample_influencers = [
-        ("John Doe", 4.5),
-        ("Jane Smith", 3.8)
-    ]
-    influencer_query = "INSERT INTO influencers (name, vibe_score) VALUES (%s, %s)"
-    
-    try:
-        with connection.cursor() as cursor:
-            cursor.executemany(influencer_query, sample_influencers)
-            connection.commit()
-            print(f"Inserted {cursor.rowcount} sample influencers.")
-    except Error as e:
-        print(f"Error inserting influencers: {e}")
+def add_influencer(connection):
+    name = input("Enter influencer name: ")
+    vibe_score = float(input("Enter influencer vibe score: "))
 
-    sample_content = [
-        (1, "YouTube", "https://youtube.com/video1", "John Doe's Video 1"),
-        (2, "Instagram", "https://instagram.com/post1", "Jane Smith's Post 1")
-    ]
-    content_query = "INSERT INTO content (influencer_id, platform, url, title) VALUES (%s, %s, %s, %s)"
-    
-    try:
-        with connection.cursor() as cursor:
-            cursor.executemany(content_query, sample_content)
-            connection.commit()
-            print(f"Inserted {cursor.rowcount} sample content entries.")
-    except Error as e:
-        print(f"Error inserting content: {e}")
+    query = """
+    INSERT INTO influencers (name, vibe_score)
+    VALUES (%s, %s)
+    """
+    values = (name, vibe_score)
 
-    sample_votes = [
-        (1, 1, "good"),
-        (2, 2, "bad")
-    ]
-    votes_query = "INSERT INTO votes (influencer_id, content_id, vote) VALUES (%s, %s, %s)"
-    
     try:
         with connection.cursor() as cursor:
-            cursor.executemany(votes_query, sample_votes)
+            print("Inserting influencer into database...")  # Debugging line
+            cursor.execute(query, values)
             connection.commit()
-            print(f"Inserted {cursor.rowcount} sample votes.")
+            print(f"Influencer added with ID: {cursor.lastrowid}")
     except Error as e:
-        print(f"Error inserting votes: {e}")
+        print(f"Error adding influencer: {e}")
+
 
 def main():
-    connection = create_connection(with_database=False)  # First, connect without a database
+    # Connect without specifying the database first to create it
+    connection = create_connection(with_database=False)
     if connection:
-        create_database(connection)  # Create the database if it doesn't exist
+        create_database(connection)
         connection.close()
 
-    # Connect to the newly created database
+    # Connect with the database specified and create tables
     connection = create_connection(with_database=True)
     if connection:
         create_influencers_table(connection)
         create_content_table(connection)
         create_votes_table(connection)
-        add_sample_data(connection)
+        
+        # Option to manually add sample influencers
+        add_influencer(connection)
+
         connection.close()
 
 if __name__ == "__main__":
