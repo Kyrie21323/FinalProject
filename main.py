@@ -155,36 +155,67 @@ def clean_data():
 
     return yt_channel_stats_cleaned, yt_comments_cleaned
 
-#insert influencers into the database / same logic
-def insert_influencers(connection, influencers_data):
-    insert_query = """
-    INSERT INTO influencers (name) 
+#insert influencers into the database
+def add_influencer(connection, influencer_data):
+    #check if an influencer exists
+    check_influencer_query = "SELECT id FROM influencers WHERE name = %s"
+
+    #insert the new influencer
+    insert_influencer_query = """
+    INSERT INTO influencers (name)
     VALUES (%s)
     """
+
     try:
         with connection.cursor() as cursor:
-            for _, row in influencers_data.iterrows():
-                cursor.execute(insert_query, (row['Name'],))                #only insert the 'Name' field
-            connection.commit()
-            print("Influencers inserted successfully.")
+            for _, row in influencer_data.iterrows():
+                # Check if already exists
+                cursor.execute(check_influencer_query, (row['Name'],))
+                result = cursor.fetchone()
+
+                if result is None:
+                    #if it doesn't, insert
+                    cursor.execute(insert_influencer_query, (row['Name'],))
+                    connection.commit()
+                    print(f"Influencer '{row['Name']}' added.")
+                else:
+                    #if it does, print message
+                    print(f"Influencer '{row['Name']}' already exists with ID: {result[0]}")
+
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
-#insert content into the database
-def insert_content(connection, content_data):
-    insert_query = """
+
+#insert content into the database / checking for existing logic is same as add_influencer
+def add_content(connection, content_data):
+    #check if the content exists
+    check_content_query = "SELECT id FROM content WHERE url = %s"
+
+    #insert new content
+    insert_content_query = """
     INSERT INTO content (influencer_id, platform, url, title) 
     VALUES (%s, %s, %s, %s)
     """
     try:
         with connection.cursor() as cursor:
-            for _, row in content_data.iterrows():                                                          #loop through each row in the content data DataFrame
-                influencer_id_query = "SELECT id FROM influencers WHERE name = %s"                          #find id according to influencer name
-                cursor.execute(influencer_id_query, (row['Name'],))                                         #execute query for current row's 'Name' column and find corresponding influencer ID
-                influencer_id = cursor.fetchone()[0]                                                        #fetch first result from the query - the ID of the influencer
-                cursor.execute(insert_query, (influencer_id, 'YouTube', row['URL'], row['Title']))          #insert relevant content data to the correct influencer
-            connection.commit()
-            print("Content inserted successfully.")
+            for _, row in content_data.iterrows():
+                #check if content exists
+                cursor.execute(check_content_query, (row['URL'],))
+                result = cursor.fetchone()
+                if result is None:
+                    influencer_id_query = "SELECT id FROM influencers WHERE name = %s"
+                    cursor.execute(influencer_id_query, (row['Name'],))
+                    influencer_id = cursor.fetchone()
+                    if influencer_id:
+                        cursor.execute(insert_content_query, (influencer_id[0], "YouTube", row['URL'], row['Title']))
+                        connection.commit()
+                        print(f"Content '{row['Title']}' added for influencer '{row['Name']}'.")
+                    else:
+                        print(f"Influencer '{row['Name']}' not found for content '{row['Title']}'.")
+                else:
+                    # If content already exists, print a message
+                    print(f"Content '{row['Title']}' already exists with ID: {result[0]}")
+
     except Error as e:
         print(f"Error inserting content: {e}")
 
@@ -209,8 +240,8 @@ def main():
         yt_channel_stats_cleaned, yt_comments_cleaned = clean_data()        #keep the cleaned data alive so that I dont have to read the files again
 
         #insert cleaned data into MySQL
-        insert_influencers(connection, yt_channel_stats_cleaned)
-        insert_content(connection, yt_channel_stats_cleaned)
+        add_influencer(connection, yt_channel_stats_cleaned)
+        add_content(connection, yt_channel_stats_cleaned)
 
         connection.close()
 
