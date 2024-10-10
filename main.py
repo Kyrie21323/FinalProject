@@ -137,7 +137,7 @@ def create_votes_table(connection):
     except Error as e:
         print(f"Error creating votes table: {e}")
 
-#read and clean the CSV data - only youtube for now
+#read and clean CSV data - only youtube for now
 def clean_data():
     #file paths for the CSV files
     yt_channel_stats_file = 'yt_channel_stats.csv'
@@ -155,7 +155,7 @@ def clean_data():
 
     return yt_channel_stats_cleaned, yt_comments_cleaned
 
-#insert influencers into the database
+#add influencers into database
 def add_influencer(connection, influencer_data):
     #check if an influencer exists
     check_influencer_query = "SELECT id FROM influencers WHERE name = %s"
@@ -185,8 +185,7 @@ def add_influencer(connection, influencer_data):
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
-
-#insert content into the database / checking for existing logic is same as add_influencer
+#add content into database / checking for existing logic is same as add_influencer
 def add_content(connection, content_data):
     #check if the content exists
     check_content_query = "SELECT id FROM content WHERE url = %s"
@@ -213,12 +212,40 @@ def add_content(connection, content_data):
                     else:
                         print(f"Influencer '{row['Name']}' not found for content '{row['Title']}'.")
                 else:
-                    # If content already exists, print a message
                     print(f"Content '{row['Title']}' already exists with ID: {result[0]}")
 
     except Error as e:
         print(f"Error inserting content: {e}")
 
+#add comments into database / checking for existing logic is same as add_influencer
+def add_comment(connection, comment_data):
+    check_comment_query = "SELECT id FROM comments WHERE comment_text = %s AND content_id = %s"
+
+    insert_comment_query = """
+    INSERT INTO comments (content_id, comment_text)
+    VALUES (%s, %s)
+    """
+
+    try:
+        with connection.cursor() as cursor:
+            for _, row in comment_data.iterrows():
+                content_id_query = "SELECT id FROM content WHERE title = %s"
+                cursor.execute(content_id_query, (row['video_title'],))
+                content_id = cursor.fetchone()
+                if content_id:
+                    cursor.execute(check_comment_query, (row['comment'], content_id[0]))
+                    result = cursor.fetchone()
+                    if result is None:
+                        cursor.execute(insert_comment_query, (content_id[0], row['comment']))
+                        connection.commit()
+                        print(f"Comment added for content ID {content_id[0]}.")
+                    else:
+                        print(f"Comment already exists for content ID {content_id[0]}.")
+                else:
+                    print(f"Content '{row['video_title']}' not found for comment '{row['comment']}'.")
+
+    except Error as e:
+        print(f"Error inserting comments: {e}")
 
 #main function that creates the database and tables
 def main():
@@ -242,7 +269,8 @@ def main():
         #insert cleaned data into MySQL
         add_influencer(connection, yt_channel_stats_cleaned)
         add_content(connection, yt_channel_stats_cleaned)
-
+        add_comment(connection, yt_comments_cleaned)
+        
         connection.close()
 
 #check if the script is run directly
