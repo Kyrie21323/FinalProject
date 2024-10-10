@@ -133,3 +133,27 @@ Data Insertion After running main.py, the script will automatically clean the CS
    - **Follow Reddit's API Terms**: Use Reddit’s official API to gather data rather than web scraping, following the platform's terms of service and API rules.
    - **Respect User Privacy**: Posts and comments on Reddit can contain personal or sensitive information. Avoid collecting or sharing identifiable data without consent, and ensure that content is anonymized when possible.
    - **Attribution and Responsible Use**: Attribute Reddit as the source of the data and avoid using the data for commercial purposes unless permission is granted. Ensure data is not taken out of context or used to mislead.
+
+## YouTube Data Integration
+The project utilizes the YouTube Data API v3 to extract data from YouTube channels. This includes channel statistics, video details, and top comments. The following steps outline the process:
+
+### API Setup:
+- Obtain an API key from the Google Developer Console.
+- Use the googleapiclient.discovery library in Python to create a service object for interacting with the YouTube API.
+### Fetching Channel Statistics:
+- Use the channels().list method to retrieve channel details such as subscriber count, view count, and video count.
+- Store this data in a structured format for analysis.
+### Extracting Video Information:
+- Retrieve the latest video link from a channel's upload playlist using `playlistItems().list`.
+- Gather video statistics and metadata for further sentiment analysis.
+### Sentiment Analysis:
+- Perform sentiment analysis on comments retrieved from videos using natural language processing (NLP) techniques.
+- Use this data to determine the general sentiment of viewers towards specific content or influencers.
+### Data Storage and Visualization:
+- Store collected data in pandas DataFrames for easy manipulation and analysis.
+- For now we are exporting data to CSV files for reporting purposes, we have our database outlined and in future we'll store the data to the database according to the format outlined above.
+
+### Future Enhancements
+- Integrate additional social media platforms for more comprehensive influencer monitoring.
+- Implement machine learning algorithms to predict future trends in influencer popularity.
+- Enhance user engagement features by allowing discussions or sharing of opinions within the app.
