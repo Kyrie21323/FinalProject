@@ -116,14 +116,20 @@ Data Insertion After running main.py, the script will automatically clean the CS
 
 ## Ethics Considerations
 
-1. Youtube
-2. TMZ
+1. **YouTube**
+
+   - **Adhere to API Policies**: Use YouTube’s official API for data collection, following its terms of service and API usage limits. Avoid scraping the website directly as it may violate YouTube’s guidelines.
+   - **Respect Content Ownership**: Videos and comments are user-generated and protected by copyright. Ensure that any collected data is used for non-commercial, educational, or research purposes and appropriately credits creators.
+   - **Minimize Impact and Privacy**: Avoid scraping or collecting personal data like user profiles or private information. Be transparent about how data is used, especially when it involves public comments or video metadata.
+
+2. **TMZ**
    This project involves the use of web scraping techniques to extract celebrity headlines from TMZ's public website. Web scraping, while a valuable tool for data collection, must be performed responsibly and ethically. The below outlines the ethical considerations for this project.
 
-- **Respect Terms of Service and Ownership**: Adhere to TMZ's terms of service, respect intellectual property, and use the scraped data only for non-commercial purposes.
-- **Minimize Website Impact**: Limit scraping frequency to avoid server overload and ensure responsible data collection.
-- **Ensure Transparency**: Attribute TMZ as the data source and avoid sharing personally identifiable information.
+   - **Respect Terms of Service and Ownership**: Adhere to TMZ's terms of service, respect intellectual property, and use the scraped data only for non-commercial purposes.
+   - **Minimize Website Impact**: Limit scraping frequency to avoid server overload and ensure responsible data collection.
+   - **Ensure Transparency**: Attribute TMZ as the data source and avoid sharing personally identifiable information.
 
-3. Reddit
-
-##
+3. **Reddit**
+   - **Follow Reddit's API Terms**: Use Reddit’s official API to gather data rather than web scraping, following the platform's terms of service and API rules.
+   - **Respect User Privacy**: Posts and comments on Reddit can contain personal or sensitive information. Avoid collecting or sharing identifiable data without consent, and ensure that content is anonymized when possible.
+   - **Attribution and Responsible Use**: Attribute Reddit as the source of the data and avoid using the data for commercial purposes unless permission is granted. Ensure data is not taken out of context or used to mislead.
