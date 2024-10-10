@@ -22,7 +22,7 @@ The project follows a structured relational database schema using **MySQL**. The
   - `id`: INT, Primary Key
   - `content_id`: INT, Foreign Key references `content`
   - `comment_text`: TEXT, Comment itself
-  - `sentiment_score`: DECIMAL, Sentiment score for the comment  -  ro be made
+  - `sentiment_score`: DECIMAL, Sentiment score for the comment  -  to be made
 
 - **Votes**: Tracks user votes on influencer content.
   - `id`: INT, Primary Key
