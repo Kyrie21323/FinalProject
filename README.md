@@ -157,3 +157,44 @@ The project utilizes the YouTube Data API v3 to extract data from YouTube channe
 - Integrate additional social media platforms for more comprehensive influencer monitoring.
 - Implement machine learning algorithms to predict future trends in influencer popularity.
 - Enhance user engagement features by allowing discussions or sharing of opinions within the app.
+
+# FastAPI Application for Database Access
+
+This FastAPI application provides RESTful API endpoints to access data from four tables in a MySQL database: `influencers`, `content`, `comments`, and `votes`.
+
+## Prerequisites
+
+- Python 3.7+
+- MySQL Server
+- Necessary Python packages listed in `requirements.txt`
+
+## Installation
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+
+`pip install fastapi uvicorn mysql-connector-python python-dotenv pandas`
+or 
+`pip install -r requirements.txt`
+
+DB_HOST=<your-database-host>
+DB_USER=<your-database-user>
+DB_PASS=<your-database-password>
+DB_NAME=<your-database-name>
+
+## Running the Application
+Start the FastAPI Server
+- Use Uvicorn to run the FastAPI application:
+`uvicorn database_api:app --reload`
+
+this will give us localhost link for the API access: 
+
+### Access API Endpoints
+- The following endpoints are available:
+   GET /influencers: Retrieve all records from the influencers table.
+   GET /content: Retrieve all records from the content table.
+   GET /comments: Retrieve all records from the comments table.
+   GET /votes: Retrieve all records from the votes table.
