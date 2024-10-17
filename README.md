@@ -194,7 +194,7 @@ this will give us localhost link for the API access:
 
 ### Access API Endpoints
 - The following endpoints are available:
-   GET /influencers: Retrieve all records from the influencers table.
-   GET /content: Retrieve all records from the content table.
-   GET /comments: Retrieve all records from the comments table.
-   GET /votes: Retrieve all records from the votes table.
+   GET /influencers: Retrieve all records from the influencers table.\
+   GET /content: Retrieve all records from the content table.\
+   GET /comments: Retrieve all records from the comments table.\
+   GET /votes: Retrieve all records from the votes table.\
