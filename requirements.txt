@@ -7,3 +7,7 @@ google-auth-httplib2
 pandas
 seaborn
 beautifulsoup4
+fastapi
+uvicorn
+sqlalchemy
+pymysql
