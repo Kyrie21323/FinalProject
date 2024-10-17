@@ -1,39 +1,3 @@
-# from fastapi import FastAPI, HTTPException, Depends, status
-# from pydantic import BaseModel
-# from typing import Annotated
-# import main
-# from sqlalchemy.orm import Session
-
-# app = FastAPI()
-
-# class influencersBase(BaseModel):
-#     name: str
-#     followers: int
-#     vibe_score: float
-
-# class contentBase(BaseModel):
-#     influencer_id: int
-#     platform: str
-#     url: str
-#     title: str
-
-# class commentBase(BaseModel):
-#     content_id: int
-#     comment_text: str
-#     sentiment_score: float
-
-# class voteBase(BaseModel):
-#     influencer_id: int
-#     content_id: int
-#     vote: int
-
-# def get_db():
-#     db = main.Sessionlocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
 from fastapi import FastAPI, HTTPException
 from mysql.connector import connect, Error
 import os
@@ -88,3 +52,38 @@ async def get_comments():
 async def get_votes():
     return fetch_all_from_table("votes")
 
+# from fastapi import FastAPI, HTTPException, Depends, status
+# from pydantic import BaseModel
+# from typing import Annotated
+# import main
+# from sqlalchemy.orm import Session
+
+# app = FastAPI()
+
+# class influencersBase(BaseModel):
+#     name: str
+#     followers: int
+#     vibe_score: float
+
+# class contentBase(BaseModel):
+#     influencer_id: int
+#     platform: str
+#     url: str
+#     title: str
+
+# class commentBase(BaseModel):
+#     content_id: int
+#     comment_text: str
+#     sentiment_score: float
+
+# class voteBase(BaseModel):
+#     influencer_id: int
+#     content_id: int
+#     vote: int
+
+# def get_db():
+#     db = main.Sessionlocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
