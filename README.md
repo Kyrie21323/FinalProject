@@ -87,6 +87,14 @@ pip install -r requirements.txt
 ```
 
 5. **Set up your .env file**
+   a.Create a new file in the project root directory and name it .env
+   b. Open the .env file in a text editor
+   c. Add your MySQL connection details in the following format:
+6. **Create the database and tables, by running the main.py script**
+
+```
+python main.py
+```
   a. Create a new file in the project root directory and name it .env
   b. Open the .env file in a text editor
   c. Add your MySQL connection details in the following format:
@@ -100,11 +108,6 @@ DB_NAME=your_database_name
 
   d. Replace the placeholders with your actual MySQL connection details
   e. Save and close the .env file
-6. **Create the database and tables, by running the main.py script**
-
-```
-python main.py
-```
 
 ## Ethics Considerations
 
