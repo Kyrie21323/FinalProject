@@ -8,7 +8,7 @@ import pandas as pd
 # creds.py contains the API key as variable YT_api
 # for security reasons, this file is not included in the repository
 # structure of the creds.py file:
-# YT_api = 'your_api_key'
+
 API_KEY = creds.YT_api
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCX6OQ3DkcsbYNE6H8uQQuVA',
@@ -89,4 +89,4 @@ for channel in channel_data:
 
 # Convert the final data to a DataFrame and save to CSV
 final_df = pd.DataFrame(final_data)
-final_df.to_csv('yt_channel_stats.csv', index=False)
+final_df.to_csv('celebrity_scraped.csv', index=False)
