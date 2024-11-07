@@ -1,5 +1,5 @@
 # import the necessary packages
-#import creds
+import creds
 from googleapiclient.discovery import build
 import pandas as pd
 #import seaborn as sns
@@ -9,9 +9,7 @@ import pandas as pd
 # for security reasons, this file is not included in the repository
 # structure of the creds.py file:
 # YT_api = 'your_api_key'
-YT_api = 'AIzaSyB0XldrjwICe-j0TUtWJyraeEkFbnYcAu8'
-#API_KEY = creds.YT_api
-API_KEY = YT_api
+API_KEY = creds.YT_api
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCX6OQ3DkcsbYNE6H8uQQuVA',
                 'UCxgAuX3XZROujMmGphN_scA',
