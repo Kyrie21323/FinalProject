@@ -188,7 +188,6 @@ def add_content(connection, content_data):
                         print(f"Content '{row['Title']}' added for influencer '{row['Name']}' on platform '{platform}'.")
                     else:
                         print(f"Influencer '{row['Name']}' not found for content '{row['Title']}'.")
-                    
     except Error as e:
         print(f"Error inserting content: {e}")
 

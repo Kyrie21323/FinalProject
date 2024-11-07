@@ -44,16 +44,31 @@ def scrape_tmz():
 
 def save_to_csv(articles, filename="celebrity_scraped.csv"):
     # Check if the current working directory is writable
-    try:
-        save_path = os.path.join(os.getcwd(), filename)
-        with open(save_path, mode='a', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            #append each article row with a null comment
-            for article in articles:
-                writer.writerow(article)
-        print(f"TMZ data appended to {save_path}")
-    except OSError as e:
-        print(f"Error saving data: {e}")
+    save_path = os.path.join(os.getcwd(), filename)
+    #load existing data to avoid duplicates
+    existing_titles = set()
+    if os.path.exists(save_path):
+        with open(save_path, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            #add each existing article to the set after standardizing
+            existing_titles = {row[1].strip().lower() for row in reader}
+
+    #filter out articles that already exist in the CSV
+    new_articles = [article for article in articles if article not in existing_titles]
+
+    #append only new articles
+    if new_articles:
+        try:
+            with open(save_path, mode='a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                #append each article row with a null comment
+                for article in articles:
+                    writer.writerow(article)
+            print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
+        except OSError as e:
+            print(f"Error saving data: {e}")
+    else:
+        print("No new articles to add.")
 
 def main():
     articles = scrape_tmz()
