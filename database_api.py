@@ -123,3 +123,4 @@ async def update_vote(influencer_id: int, content_id: int, new_vote: str):
 #         print(f"Error creating votes table: {e}")
 
 # how to use the put request using API call in python:
+# I've implitmented that in another file called test_api.py we can later delete that.
