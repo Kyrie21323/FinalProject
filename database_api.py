@@ -4,11 +4,26 @@ from mysql.connector import connect, Error # mysql.connector library for connect
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI() # create an instance of the FastAPI class which can be used by uvicorn to run tha API in our local machine
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 # function to connect to the mysql database
 def get_database_connection():
