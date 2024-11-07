@@ -42,24 +42,18 @@ def scrape_tmz():
     
     return articles
 
-def save_to_csv(articles, filename="tmz_headlines.csv"):
+def save_to_csv(articles, filename="celebrity_scraped.csv"):
     # Check if the current working directory is writable
     try:
         save_path = os.path.join(os.getcwd(), filename)
-        with open(save_path, mode='w', newline='', encoding='utf-8') as file:
+        with open(save_path, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow(["Celebrity Name", "Title", "Link"])
-            writer.writerows(articles)
-        print(f"Data saved to {save_path}")
+            #append each article row with a null comment
+            for article in articles:
+                writer.writerow(article)
+        print(f"TMZ data appended to {save_path}")
     except OSError as e:
-        if e.errno == 30:  # Read-only file system
-            # Fallback to saving the file in the user's home directory
-            save_path = os.path.join(os.path.expanduser("~"), filename)
-            with open(save_path, mode='w', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                writer.writerow(["Celebrity Name", "Title", "Link"])
-                writer.writerows(articles)
-            print(f"Data saved to {save_path} (Home Directory)")
+        print(f"Error saving data: {e}")
 
 def main():
     articles = scrape_tmz()
