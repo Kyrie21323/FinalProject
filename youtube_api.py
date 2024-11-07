@@ -12,10 +12,9 @@ import pandas as pd
 API_KEY = creds.YT_api
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCX6OQ3DkcsbYNE6H8uQQuVA',
-               'UCxgAuX3XZROujMmGphN_scA',
-               'UCqECaJ8Gagnn7YCbPEzWH6g',
-               'UC0WP5P-ufpRfjbNrmOWwLBQ']
-#influencer = 'Mark Tilbury'
+                'UCxgAuX3XZROujMmGphN_scA',
+                'UCqECaJ8Gagnn7YCbPEzWH6g',
+                'UCIwFjwMjI0y7PDBVEO9-bkQ']
 
 # setting up the YouTube API service by defining the API service name and version
 api_service_name = "youtube"
@@ -46,7 +45,6 @@ def get_channel_stats(youtube, channel_ids):
     return data_list
 
 channel_data = get_channel_stats(youtube, channel_ids)
-
 # Function to get the latest video link from a playlist
 def get_latest_video_link(youtube, playlist_id): # using the playlist id that we fetched earlier using the get_channel_stats function
     request = youtube.playlistItems().list(
@@ -61,6 +59,7 @@ def get_latest_video_link(youtube, playlist_id): # using the playlist id that we
     video_link = f"https://www.youtube.com/watch?v={video_id}" # creating the video link using the video id
     return video_title, video_link
 
+
 # Add latest video link to each channel's data
 for channel in channel_data:
     video_title, latest_video_link = get_latest_video_link(youtube, channel['playlist_id'])
@@ -69,6 +68,7 @@ for channel in channel_data:
 
 # create a pandas DataFrame to store the channel data
 stats = pd.DataFrame(channel_data)
+#print(stats)    
 
 # change the data types of the certain columns to numeric
 stats['subscriber_count'] = pd.to_numeric(stats['subscriber_count'])
@@ -96,12 +96,16 @@ def get_top_comments(youtube, video_id): # using the video id that we fetched ea
         comments_data.append({'author': author, 'comment': comment}) # append the author and comment to the comments_data list
     return comments_data
 
+
 comments_list = [] # list to store the comments data
 for channel in channel_data:
     video_id = channel['URL'].split('=')[-1] # getting the video id from the video link
     comments_data = get_top_comments(youtube, video_id) # getting the top comments for the video
     comments_df = pd.DataFrame(comments_data) # creating a DataFrame from the comments data
     comments_list.append(comments_df) # append the DataFrame to the comments_list
+
+# Save the stats DataFrame to a CSV file
+stats.to_csv('channel_stats.csv', index=False)
 
 # Initialize an empty list to hold all comments with channel information
 all_comments = []
@@ -119,7 +123,5 @@ all_comments_df = pd.concat(all_comments, ignore_index=True)
 # print the comments data
 #print(all_comments_df)
 
-# Save the stats DataFrame to a CSV file
-stats.to_csv('channel_stats.csv', index=False)
 # Save the combined comments DataFrame to a CSV file
 all_comments_df.to_csv('all_comments.csv', index=False)

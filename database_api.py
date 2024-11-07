@@ -35,6 +35,7 @@ def fetch_all_from_table(table_name):
         raise HTTPException(status_code=500, detail=f"Error fetching data from {table_name}: {e}")
     finally:
         connection.close()
+        
 
 @app.get("/influencers")
 async def get_influencers():

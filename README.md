@@ -198,3 +198,4 @@ this will give us localhost link for the API access:
    GET /content: Retrieve all records from the content table.\
    GET /comments: Retrieve all records from the comments table.\
    GET /votes: Retrieve all records from the votes table.\
+   
