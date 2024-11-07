@@ -81,6 +81,7 @@ def create_content_table(connection):
         platform VARCHAR(50),
         url TEXT NOT NULL,
         title VARCHAR(255),
+        sentiment_score INT,
         FOREIGN KEY (influencer_id) REFERENCES influencers(id) ON DELETE CASCADE
     );
     """

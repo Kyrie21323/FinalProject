@@ -52,10 +52,11 @@ def save_to_csv(articles, filename="celebrity_scraped.csv"):
             reader = csv.reader(file)
             #add each existing article to the set after standardizing
             existing_titles = {row[1].strip().lower() for row in reader}
+            print(f"existing titles are", existing_titles)
 
     #filter out articles that already exist in the CSV
     new_articles = [article for article in articles if article not in existing_titles]
-
+    print(f"new articles are:",new_articles)
     #append only new articles
     if new_articles:
         try:
