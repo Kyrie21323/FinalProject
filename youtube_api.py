@@ -71,7 +71,7 @@ def get_top_comments(youtube, video_id): # using the video id that we fetched ea
         comments_data.append(comment) # append the comment only to the comments_data list
     return comments_data
 
-#main code to fetch data and merge into a single DataFrame
+#main code to fetch data and merge into a single csv file
 channel_data = get_channel_stats(youtube, channel_ids)
 final_data = []
 
@@ -79,7 +79,7 @@ for channel in channel_data:
     video_title, latest_video_link = get_latest_video_link(youtube, channel['playlist_id'])
     top_comments = get_top_comments(youtube, latest_video_link.split('=')[-1])
     
-    # Add each comment with channel info to final data
+    #add each comment with channel info to final data
     for comment in top_comments:
         final_data.append({
             'Name': channel['Name'],
