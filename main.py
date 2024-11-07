@@ -38,10 +38,6 @@ def create_connection(with_database=True):
         # print("Successfully connected to the database")
     except Error as e:
         print(f"Error connecting to MySQL: {e}")
-        print(f"Error Code: {e.errno}")
-        print(f"SQL State: {e.sqlstate}")
-        print(f"Error Message: {e.msg}")
-    
     return connection
 
 #create the database if it doesn't already exist
@@ -139,32 +135,18 @@ def create_votes_table(connection):
 
 #read and clean CSV data - only youtube for now
 def clean_data():
-    #file paths for the CSV files
-    yt_channel_stats_file = 'yt_channel_stats.csv'
-    yt_comments_file = 'yt_comments.csv'
-
-    #load CSV files into data frames
-    yt_channel_stats_df = pd.read_csv(yt_channel_stats_file)
-    yt_comments_df = pd.read_csv(yt_comments_file)
-
-    #clean data - select the needed columns from 'yt_channel_stats.csv'
-    yt_channel_stats_cleaned = yt_channel_stats_df[['Name', 'Title', 'URL']].dropna()
-
-    #clean data for comments
-    yt_comments_cleaned = yt_comments_df[['comment', 'video_title']].dropna()
-
-    return yt_channel_stats_cleaned, yt_comments_cleaned
+    merged_file = os.path.join('scraping', 'celebrity_scraped.csv')  # path to the merged CSV file
+    data_df = pd.read_csv(merged_file)
+    #select only required columns
+    data_df = data_df[['Name', 'Title', 'URL', 'comment']].dropna(subset=['Name', 'Title', 'URL'])
+    return data_df
 
 #add influencers into database
 def add_influencer(connection, influencer_data):
     #check if an influencer exists
     check_influencer_query = "SELECT id FROM influencers WHERE name = %s"
-
     #insert the new influencer
-    insert_influencer_query = """
-    INSERT INTO influencers (name)
-    VALUES (%s)
-    """
+    insert_influencer_query = "INSERT INTO influencers (name) VALUES (%s)"
 
     try:
         with connection.cursor() as cursor:
@@ -178,10 +160,6 @@ def add_influencer(connection, influencer_data):
                     cursor.execute(insert_influencer_query, (row['Name'],))
                     connection.commit()
                     print(f"Influencer '{row['Name']}' added.")
-                else:
-                    #if it does, print message
-                    print(f"Influencer '{row['Name']}' already exists with ID: {result[0]}")
-
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
@@ -189,12 +167,8 @@ def add_influencer(connection, influencer_data):
 def add_content(connection, content_data):
     #check if the content exists
     check_content_query = "SELECT id FROM content WHERE url = %s"
-
     #insert new content
-    insert_content_query = """
-    INSERT INTO content (influencer_id, platform, url, title) 
-    VALUES (%s, %s, %s, %s)
-    """
+    insert_content_query = "INSERT INTO content (influencer_id, platform, url, title) VALUES (%s, %s, %s, %s)"
     try:
         with connection.cursor() as cursor:
             for _, row in content_data.iterrows():
@@ -202,18 +176,19 @@ def add_content(connection, content_data):
                 cursor.execute(check_content_query, (row['URL'],))
                 result = cursor.fetchone()
                 if result is None:
-                    influencer_id_query = "SELECT id FROM influencers WHERE name = %s"
-                    cursor.execute(influencer_id_query, (row['Name'],))
+                    #determine platform based on comment presence
+                    platform = "YouTube" if pd.notna(row['comment']) else "TMZ"
+                    #get the influencer ID
+                    cursor.execute("SELECT id FROM influencers WHERE name = %s", (row['Name'],))
                     influencer_id = cursor.fetchone()
                     if influencer_id:
-                        cursor.execute(insert_content_query, (influencer_id[0], "YouTube", row['URL'], row['Title']))
+                        # Insert the content with the determined platform
+                        cursor.execute(insert_content_query, (influencer_id[0], platform, row['URL'], row['Title']))
                         connection.commit()
-                        print(f"Content '{row['Title']}' added for influencer '{row['Name']}'.")
+                        print(f"Content '{row['Title']}' added for influencer '{row['Name']}' on platform '{platform}'.")
                     else:
                         print(f"Influencer '{row['Name']}' not found for content '{row['Title']}'.")
-                else:
-                    print(f"Content '{row['Title']}' already exists with ID: {result[0]}")
-
+                    
     except Error as e:
         print(f"Error inserting content: {e}")
 
@@ -221,28 +196,23 @@ def add_content(connection, content_data):
 def add_comment(connection, comment_data):
     check_comment_query = "SELECT id FROM comments WHERE comment_text = %s AND content_id = %s"
 
-    insert_comment_query = """
-    INSERT INTO comments (content_id, comment_text)
-    VALUES (%s, %s)
-    """
-
+    insert_comment_query = insert_comment_query = "INSERT INTO comments (content_id, comment_text) VALUES (%s, %s)"
     try:
         with connection.cursor() as cursor:
-            for _, row in comment_data.iterrows():
+            for _, row in comment_data.dropna(subset=['comment']).iterrows():
+                #find the content ID based on the title
                 content_id_query = "SELECT id FROM content WHERE title = %s"
-                cursor.execute(content_id_query, (row['video_title'],))
+                cursor.execute(content_id_query, (row['Title'],))
                 content_id = cursor.fetchone()
                 if content_id:
+                    #check if the comment already exists
                     cursor.execute(check_comment_query, (row['comment'], content_id[0]))
                     result = cursor.fetchone()
                     if result is None:
+                        #if the comment doesn't exist, insert it
                         cursor.execute(insert_comment_query, (content_id[0], row['comment']))
                         connection.commit()
-                        print(f"Comment added for content ID {content_id[0]}.")
-                    else:
-                        print(f"Comment already exists for content ID {content_id[0]}.")
-                else:
-                    print(f"Content '{row['video_title']}' not found for comment '{row['comment']}'.")
+                        print(f"Comment added for content '{row['Title']}'.")
 
     except Error as e:
         print(f"Error inserting comments: {e}")
@@ -263,13 +233,13 @@ def main():
         create_comments_table(connection)                   #create comments table
         create_votes_table(connection)                      #create votes table
 
-        #clean and save the CSV data to new files
-        yt_channel_stats_cleaned, yt_comments_cleaned = clean_data()        #keep the cleaned data alive so that I dont have to read the files again
+        #save the CSV data
+        merged_data = clean_data()
 
         #insert cleaned data into MySQL
-        add_influencer(connection, yt_channel_stats_cleaned)
-        add_content(connection, yt_channel_stats_cleaned)
-        add_comment(connection, yt_comments_cleaned)
+        add_influencer(connection, merged_data)
+        add_content(connection, merged_data)
+        add_comment(connection, merged_data)
         
         connection.close()
 
