@@ -67,7 +67,6 @@ def create_influencers_table(connection):
         with connection.cursor() as cursor:
             cursor.execute(create_table_query)
             connection.commit()  #changes committed to the database
-            print("Table 'influencers' created successfully.")
     except Error as e:
         print(f"Error creating influencers table: {e}")
 
@@ -89,7 +88,6 @@ def create_content_table(connection):
         with connection.cursor() as cursor:
             cursor.execute(create_table_query)
             connection.commit()
-            print("Table 'content' created successfully.")
     except Error as e:
         print(f"Error creating content table: {e}")
 
@@ -109,7 +107,6 @@ def create_comments_table(connection):
         with connection.cursor() as cursor:
             cursor.execute(create_table_query)
             connection.commit()
-            print("Table 'comments' created successfully.")
     except Error as e:
         print(f"Error creating comments table: {e}")
 
@@ -121,7 +118,6 @@ def create_votes_table(connection):
         id INT AUTO_INCREMENT PRIMARY KEY,
         influencer_id INT,
         content_id INT,
-        vote ENUM('good', 'bad') NOT NULL,
         FOREIGN KEY (influencer_id) REFERENCES influencers(id) ON DELETE CASCADE,
         FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
     );
@@ -130,11 +126,10 @@ def create_votes_table(connection):
         with connection.cursor() as cursor:
             cursor.execute(create_table_query)
             connection.commit()
-            print("Table 'votes' created successfully.")
     except Error as e:
         print(f"Error creating votes table: {e}")
 
-#read and clean CSV data - only youtube for now
+#read merged and cleaned data from .csv
 def clean_data():
     merged_file = os.path.join('scraping', 'celebrity_scraped.csv')  # path to the merged CSV file
     data_df = pd.read_csv(merged_file)
@@ -217,6 +212,49 @@ def add_comment(connection, comment_data):
     except Error as e:
         print(f"Error inserting comments: {e}")
 
+#add and delete columns we need/do not need for out project
+def adjust_tables(connection):
+    try:
+        with connection.cursor() as cursor:
+            #check and add columns for the 'votes' table
+            cursor.execute("SHOW COLUMNS FROM votes LIKE 'good_vote';")
+            if cursor.fetchone() is None:
+                cursor.execute("ALTER TABLE votes ADD COLUMN good_vote INT DEFAULT 0;")
+                print("New columns added successfully (if they were missing).")
+            cursor.execute("SHOW COLUMNS FROM votes LIKE 'bad_vote';")
+            if cursor.fetchone() is None:
+                cursor.execute("ALTER TABLE votes ADD COLUMN bad_vote INT DEFAULT 0;")
+                print("New columns added successfully (if they were missing).")
+
+            #same logic for 'content' table
+            cursor.execute("SHOW COLUMNS FROM content LIKE 'sentiment_score';")
+            if cursor.fetchone() is None:
+                cursor.execute("ALTER TABLE content ADD COLUMN sentiment_score DECIMAL(5, 2);")
+                print("New columns added successfully (if they were missing).")
+
+            #same logic for 'influencers' table
+            cursor.execute("SHOW COLUMNS FROM influencers LIKE 'image_url';")
+            if cursor.fetchone() is None:
+                cursor.execute("ALTER TABLE influencers ADD COLUMN image_url TEXT;")
+                print("New columns added successfully (if they were missing).")
+
+            #check and delete columns
+            cursor.execute("SHOW COLUMNS FROM votes LIKE 'vote';")
+            if cursor.fetchone() is not None:
+                #drop the 'vote' column if it exists
+                cursor.execute("ALTER TABLE votes DROP COLUMN vote;")
+                print("Column 'vote' has been removed from 'votes' table.")
+            else:
+                print("Column 'vote' does not exist in 'votes' table, no action needed.")
+
+
+            # Commit changes
+            connection.commit()
+            
+    
+    except Error as e:
+        print(f"Error adding new columns: {e}")
+
 #main function that creates the database and tables
 def main():
     #connect without specifying the database first to see if it doesn't exist
@@ -232,6 +270,9 @@ def main():
         create_content_table(connection)                    #create content table
         create_comments_table(connection)                   #create comments table
         create_votes_table(connection)                      #create votes table
+
+        #add new columns to the existing tables
+        adjust_tables(connection)
 
         #save the CSV data
         merged_data = clean_data()
