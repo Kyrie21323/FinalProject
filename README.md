@@ -37,8 +37,6 @@ The project follows a structured relational database schema using **MySQL**. The
 
 ### ER Diagram
 
-![Database Schema](resources/schema.png)
-
 ### SQL Database:
 
 We chose SQL (MySQL) for the following reasons:
