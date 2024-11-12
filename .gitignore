@@ -4,3 +4,5 @@ __pycache__/
 .env
 .vscode/
 creds.py
+test.py
+test.ipynb

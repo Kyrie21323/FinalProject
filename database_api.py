@@ -5,6 +5,16 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
+class VoteCreate(BaseModel):
+    influencer_id: int
+    content_id: int
+    good_vote: int
+    bad_vote: int
+
+class VoteUpdate(BaseModel):
+    good_vote: int
+    bad_vote: int
+
 # Load environment variables
 load_dotenv()
 
@@ -28,7 +38,7 @@ def get_database_connection():
 def fetch_all_from_table(table_name):
     connection = get_database_connection()
     if connection is None:
-        raise HTTPException(status_code=500, detail="Could not connect to the database") # raise an exception if the connection is not established
+        raise HTTPException(status_code=500, detail="Could not connect to the database error 500") # raise an exception if the connection is not established
 
     try:
         with connection.cursor(dictionary=True) as cursor: # using the cursor to execute the SQL query
@@ -58,48 +68,125 @@ async def get_comments():
 async def get_votes():
     return fetch_all_from_table("votes")
 
-# # for testing purposes. This is not part of the final code
-# class item(BaseModel):
-#     name: str
-#     followers: int
-#     vibe_score: float
+# this endpoint is used to fetch the data from th votes table based on the influencer_id and content_id
+# this function is useful when we want to fetch the data based on the influencer_id and content_id and based on that we want to update the votecount.
+@app.get("/votes/{influencer_id}/{content_id}")
+async def get_vote(influencer_id: int, content_id: int):
+    connection = get_database_connection()
+    if connection is None:
+        raise HTTPException(status_code=500, detail="Could not connect to the database")
 
-# @app.post("/create_item") # endpoint to create a new item in the table
-# def create_item(item: Item):
+    try:
+        with connection.cursor(dictionary=True) as cursor:
+            cursor.execute(
+                "SELECT * FROM votes WHERE influencer_id = %s AND content_id = %s",
+                (influencer_id, content_id)
+            )
+            vote = cursor.fetchone()
+            if vote is None:
+                # Return a 404 error if no vote is found
+                raise HTTPException(status_code=404, detail="Vote not found")
+            return vote
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching vote: {e}")
+    finally:
+        connection.close()
 
-# @app.put to update the item in the table
-@app.put("/votes/update")
-async def update_vote(influencer_id: int, content_id: int, new_vote: str):
+# create the API endpoint to add a new vote to the votes table
+@app.post("/votes", status_code=201)  # Status code 201 indicates resource creation
+async def create_vote(vote: VoteCreate):
     connection = get_database_connection()
     if connection is None:
         raise HTTPException(status_code=500, detail="Could not connect to the database")
 
     try:
         with connection.cursor() as cursor:
-            # Check if the vote exists first
             cursor.execute(
-                "SELECT * FROM votes WHERE influencer_id = %s AND content_id = %s", 
-                (influencer_id, content_id)
+                "INSERT INTO votes (influencer_id, content_id, good_vote, bad_vote) VALUES (%s, %s, %s, %s)", # SQL query to insert the vote into the votes table
+                (vote.influencer_id, vote.content_id, vote.good_vote, vote.bad_vote) # values to be inserted into the table
             )
-            vote_record = cursor.fetchone()
+            connection.commit()
+            return {"message": "Vote added successfully"}
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Error inserting vote: {e}")
+    finally:
+        connection.close()
 
-            if not vote_record:
-                raise HTTPException(status_code=404, detail="Vote record not found")
 
-            # Update the vote value
+# @app.put to update the item in the table
+@app.put("/votes")
+async def update_or_create_vote(vote: VoteCreate):
+    connection = get_database_connection()
+    if connection is None:
+        raise HTTPException(status_code=500, detail="Could not connect to the database")
+
+    try:
+        with connection.cursor() as cursor:
+            # Check if the vote already exists
             cursor.execute(
-                "UPDATE votes SET vote = %s WHERE influencer_id = %s AND content_id = %s", 
-                (new_vote, influencer_id, content_id)
+                "SELECT * FROM votes WHERE influencer_id = %s AND content_id = %s", # SQL query to check if the vote already exists
+                (vote.influencer_id, vote.content_id) # values to be checked
             )
-            connection.commit()  # Commit changes to the database
+            existing_vote = cursor.fetchone() # fetch the vote if it already exists
 
-            return {"message": "Vote updated successfully"}
+            if existing_vote is None:
+                # If no existing record found, insert a new one
+                cursor.execute(
+                    "INSERT INTO votes (influencer_id, content_id, good_vote, bad_vote) VALUES (%s, %s, %s, %s)", # based on the parametets passed we insert the new vote
+                    (vote.influencer_id, vote.content_id, vote.good_vote, vote.bad_vote)
+                )
+                message = "Vote created successfully"
+            else:
+                # Otherwise update the existing record
+                cursor.execute(
+                    "UPDATE votes SET good_vote = %s, bad_vote = %s WHERE influencer_id = %s AND content_id = %s",
+                    (vote.good_vote, vote.bad_vote, vote.influencer_id, vote.content_id)
+                )
+                message = "Vote updated successfully"
+
+            connection.commit()
+            return {"message": message}
     
     except Error as e:
-        raise HTTPException(status_code=500, detail=f"Error updating vote: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing vote: {e}")
     
     finally:
         connection.close()
+
+
+
+# @app.put("/votes/update")
+# async def update_vote(influencer_id: int, content_id: int, new_vote: str):
+#     connection = get_database_connection()
+#     if connection is None:
+#         raise HTTPException(status_code=500, detail="Could not connect to the database")
+
+#     try:
+#         with connection.cursor() as cursor:
+#             # Check if the vote exists first
+#             cursor.execute(
+#                 "SELECT * FROM votes WHERE influencer_id = %s AND content_id = %s", 
+#                 (influencer_id, content_id)
+#             )
+#             vote_record = cursor.fetchone()
+
+#             if not vote_record:
+#                 raise HTTPException(status_code=404, detail="Vote record not found")
+
+#             # Update the vote value
+#             cursor.execute(
+#                 "UPDATE votes SET vote = %s WHERE influencer_id = %s AND content_id = %s", 
+#                 (new_vote, influencer_id, content_id)
+#             )
+#             connection.commit()  # Commit changes to the database
+
+#             return {"message": "Vote updated successfully"}
+    
+#     except Error as e:
+#         raise HTTPException(status_code=500, detail=f"Error updating vote: {e}")
+    
+#     finally:
+#         connection.close()
 
 # to change the acutual database schema so that we can update the vote easily
 # def create_votes_table(connection):

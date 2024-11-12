@@ -24,33 +24,26 @@ async function getContent() {
     }
 }
 
-// Function to add a vote (POST request)
-async function addVote(influencerId, contentId, vote) {
-    try {
-        const response = await axios.post(`${BASE_URL}/votes`, {
-            influencer_id: influencerId,
-            content_id: contentId,
-            vote: vote
-        });
-        
-        console.log("Vote added successfully");
-    } catch (error) {
-        console.error("Error adding vote:", error.response ? error.response.status : error.message);
-    }
-}
 
 // Function to update a vote (PUT request)
-async function updateVote(influencerId, contentId, newVote) {
+async function updateVote(influencerId, contentId, isThumbUp) {
     try {
-        const response = await axios.put(`${BASE_URL}/votes/update`, null, { 
-            params: { 
-                influencer_id: influencerId,
-                content_id: contentId,
-                new_vote: newVote 
-            }
-        });
-        
-        console.log("Vote updated successfully");
+        // Step 1: Fetch the current vote data
+        const fetchResponse = await axios.get(`${BASE_URL}/votes/${influencerId}/${contentId}`);
+        const currentVote = fetchResponse.data;
+
+        // Step 2: Update the vote values based on thumb up or thumb down
+        const updatedVote = {
+            influencer_id: influencerId,
+            content_id: contentId,
+            good_vote: isThumbUp ? currentVote.good_vote + 1 : currentVote.good_vote,
+            bad_vote: isThumbUp ? currentVote.bad_vote : currentVote.bad_vote + 1
+        };
+
+        // Step 3: Send PUT request to update the vote in the backend
+        const updateResponse = await axios.put(`${BASE_URL}/votes`, updatedVote);
+
+        console.log("Vote updated successfully:", updateResponse.data);
     } catch (error) {
         console.error("Error updating vote:", error.response ? error.response.status : error.message);
     }
@@ -59,5 +52,14 @@ async function updateVote(influencerId, contentId, newVote) {
 // Example usage:
 getInfluencers(); // Fetch all influencers
 getContent(); // Fetch all content
-addVote(1, 2, "upvote"); // Add a new vote
-updateVote(1, 2, "downvote"); // Update an existing vote
+
+// Example usage when user clicks thumbs up
+document.getElementById('thumb-up').addEventListener('click', () => {
+    updateVote(2, 11, true);  // true means thumbs up (increment good vote)
+});
+
+// Example usage when user clicks thumbs down
+document.getElementById('thumb-down').addEventListener('click', () => {
+    updateVote(2, 11, false);  // false means thumbs down (increment bad vote)
+});
+
