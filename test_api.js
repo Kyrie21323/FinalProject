@@ -1,8 +1,6 @@
 // Import axios
 import axios from 'axios';
-
-// Base URL of your FastAPI backend
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://localhost:8000"; // Base URL of your FastAPI backend
 
 // Function to fetch all influencers
 async function getInfluencers() {
@@ -13,7 +11,6 @@ async function getInfluencers() {
         console.error("Error fetching influencers:", error.response ? error.response.status : error.message);
     }
 }
-
 // Function to fetch all content
 async function getContent() {
     try {
@@ -23,8 +20,6 @@ async function getContent() {
         console.error("Error fetching content:", error.response ? error.response.status : error.message);
     }
 }
-
-
 // Function to update a vote (PUT request)
 async function updateVote(influencerId, contentId, isThumbUp) {
     try {
@@ -52,14 +47,11 @@ async function updateVote(influencerId, contentId, isThumbUp) {
 // Example usage:
 getInfluencers(); // Fetch all influencers
 getContent(); // Fetch all content
-
 // Example usage when user clicks thumbs up
 document.getElementById('thumb-up').addEventListener('click', () => {
     updateVote(2, 11, true);  // true means thumbs up (increment good vote)
 });
-
 // Example usage when user clicks thumbs down
 document.getElementById('thumb-down').addEventListener('click', () => {
     updateVote(2, 11, false);  // false means thumbs down (increment bad vote)
 });
-

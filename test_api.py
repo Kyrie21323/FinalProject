@@ -1,7 +1,8 @@
 import requests
 
 # Define the base URL of your FastAPI API
-BASE_URL = "http://localhost:8000" # when we use uvicorn to run the API on our local machine it will generate a URL like this then we can use that to make requests to the API
+BASE_URL = "http://127.0.0.1:8000"
+ # when we use uvicorn to run the API on our local machine it will generate a URL like this then we can use that to make requests to the API
 
 # we can also implement the same in javascript using the fetch API for our frontend
 # Function to get all influencers
@@ -30,8 +31,6 @@ def get_content():
 
 
 # Function to update a vote (PUT request)
-BASE_URL = "http://127.0.0.1:8000"
-
 def update_vote(influencer_id, content_id, is_thumb_up):
     """
     Function to update a vote for a given influencer and content.
@@ -84,13 +83,13 @@ def update_vote(influencer_id, content_id, is_thumb_up):
 if __name__ == "__main__":
     # Fetch all influencers
     get_influencers()
-
     # Fetch all content
     get_content()
-
-    # Update an existing vote (replace with actual influencer_id and content_id)
+     # Update an existing vote (replace with actual influencer_id and content_id)
     update_vote(18, 13, True)
     update_vote(18, 13, False)
 
     update_vote(19, 14, True)
     update_vote(19, 14, False)
+
+   

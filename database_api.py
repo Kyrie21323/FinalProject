@@ -70,18 +70,6 @@ def fetch_all_from_table(table_name):
 @app.get("/influencers") # endpoint to fetch the data from the influencers table
 async def get_influencers(): # async function to fetch the data, async is used to make the function asynchronous which is useful when we are fetching data from the database or making API requests
     return fetch_all_from_table("influencers") # async function was recommended by the LLM to make our API better as previously I was incountring some errors
-#
-@app.get("/content") # endpoint to fetch the data from the content table
-async def get_content():
-    return fetch_all_from_table("content")
-
-@app.get("/comments") # endpoint to fetch the data from the comments table
-async def get_comments():
-    return fetch_all_from_table("comments")
-
-@app.get("/votes") # endpoint to fetch the data from the votes table
-async def get_votes():
-    return fetch_all_from_table("votes")
 
 # this endpoint is used to fetch the data from th votes table based on the influencer_id and content_id
 # this function is useful when we want to fetch the data based on the influencer_id and content_id and based on that we want to update the votecount.
@@ -107,6 +95,20 @@ async def get_vote(influencer_id: int, content_id: int):
     finally:
         connection.close()
 
+
+@app.get("/content") # endpoint to fetch the data from the content table
+async def get_content():
+    return fetch_all_from_table("content")
+
+@app.get("/comments") # endpoint to fetch the data from the comments table
+async def get_comments():
+    return fetch_all_from_table("comments")
+
+@app.get("/votes") # endpoint to fetch the data from the votes table
+async def get_votes():
+    return fetch_all_from_table("votes")
+
+
 # create the API endpoint to add a new vote to the votes table
 @app.post("/votes", status_code=201)  # Status code 201 indicates resource creation
 async def create_vote(vote: VoteCreate):
@@ -126,7 +128,6 @@ async def create_vote(vote: VoteCreate):
         raise HTTPException(status_code=500, detail=f"Error inserting vote: {e}")
     finally:
         connection.close()
-
 
 # @app.put to update the item in the table
 @app.put("/votes")
@@ -167,7 +168,6 @@ async def update_or_create_vote(vote: VoteCreate):
     
     finally:
         connection.close()
-
 
 
 # @app.put("/votes/update")
