@@ -111,7 +111,7 @@ def create_comments_table(connection):
         print(f"Error creating comments table: {e}")
 
 #create votes table / logic is same as influencer table
-def create_votes_table(connection):
+def create_votes_table(connection): 
     print("Creating votes table...")
     create_table_query = """
     CREATE TABLE IF NOT EXISTS votes (
