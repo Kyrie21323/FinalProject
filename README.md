@@ -37,7 +37,7 @@ The project follows a structured relational database schema using **MySQL**. The
 
 ### ER Diagram
 
-![Database Schema](./schema.png)
+![ER Diagram](resources/ERdiagram.png)
 
 ### SQL Database:
 
@@ -87,9 +87,9 @@ pip install -r requirements.txt
 ```
 
 5. **Set up your .env file**
-   a. Create a new file in the project root directory and name it .env
-   b. Open the .env file in a text editor
-   c. Add your MySQL connection details in the following format:
+  - Create a new file in the project root directory and name it .env
+  - Open the .env file in a text editor
+  - Add your MySQL connection details in the following format:
 
 ```
 DB_HOST=your_mysql_host
@@ -97,21 +97,13 @@ DB_USER=your_mysql_username
 DB_PASS=your_mysql_password
 DB_NAME=your_database_name
 ```
+  - Replace the placeholders with your actual MySQL connection details
+  - Save and close the .env file
 
-d. Replace the placeholders with your actual MySQL connection details (provided for you on Slack). For example:
-
-```
-DB_HOST=34.123.45.67
-DB_USER=myuser
-DB_PASS=mypassword
-DB_NAME=campy_movies
-```
-
-e. Save and close the .env file 6. **Create the database and tables, by running the main.py script**
+6. **Create the database and tables, by running the main.py script**
 
 ```
 python main.py
-Data Insertion After running main.py, the script will automatically clean the CSV data and insert influencer and content data into the MySQL database.
 ```
 
 ## Ethics Considerations
