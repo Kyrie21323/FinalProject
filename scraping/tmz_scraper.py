@@ -67,11 +67,27 @@ def fetch_article_content(url):
 def save_to_csv(articles, filename="tmz_headlines.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
-    with open(save_path, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Title", "Link", "Celebrity Name", "Content"])
-        writer.writerows(articles)
-    print(f"Data saved to {filename}")
+    existing_titles = set()
+    if os.path.exists(save_path):
+        with open(save_path, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            existing_titles = {row[1].strip().lower() for row in reader}
+            print(f"existing titles are", existing_titles)
+    new_articles = [article for article in articles if article not in existing_titles]
+    print(f"new articles are:",new_articles)
+    #append only new articles
+
+    if new_articles:
+        try:
+            with open(save_path, mode='a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+            for article in articles:
+                writer.writerow(article)
+            print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
+        except OSError as e:
+            print(f"Error saving data: {e}")
+    else:
+        print("No new articles to add.")
 
 def main():
     articles = scrape_tmz()
