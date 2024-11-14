@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import csv
 import os
 import urllib.parse
+import time
 
 def scrape_tmz():
     base_url = "https://www.tmz.com/search/?q="
@@ -25,34 +26,22 @@ def scrape_tmz():
         soup = BeautifulSoup(response.content, 'html.parser')
         
         # Look for articles in search results
-        for item in soup.select('.article__header'):
-            # Find the anchor tag and check if it's present
-            link_tag = item.find('a', class_='article__header-link')
-            if link_tag and 'href' in link_tag.attrs:
-                link = link_tag['href']
-                if not link.startswith('http'):
-                    link = "https://www.tmz.com" + link
-            else:
-                link = "No link available"
+        for item in soup.select('a.gridler__card-link'):
+            title_tag = item.select_one('h4.gridler__card-title')
+            title = title_tag.get_text(strip=True) if title_tag else "No title"
             
-            # Extract the headline fragments
-            celebrity_name_tag = item.select_one('.article__header--hf1.text-uppercase.h3')
-            title_part1 = item.select_one('.article__header--hf2.text-uppercase.h1')
-            title_part2 = item.select_one('.article__header--hf3.text-titlecase.h2')
+            link = item['href']
+            if not link.startswith('http'):
+                link = "https://www.tmz.com" + link
 
-            # Get text if present, else default to the celebrity name
-            celebrity_name = celebrity_name_tag.get_text(strip=True) if celebrity_name_tag else celebrity
-            title1 = title_part1.get_text(strip=True) if title_part1 else ""
-            title2 = title_part2.get_text(strip=True) if title_part2 else ""
+            # Fetch the body content of the article
+            content = fetch_article_content(link)
             
-            # Combine the title parts with a space
-            title = f"{title1} {title2}".strip()
-
-            # Fetch the article content
-            content = fetch_article_content(link) if link != "No link available" else "Content not available"
+            # Append the article data
+            articles.append((title, link, celebrity, content))
             
-            # Add to the articles list
-            articles.append((celebrity_name, title, link, content))
+            # Brief pause to avoid overwhelming the server
+            time.sleep(1)
     
     return articles
 
@@ -64,49 +53,29 @@ def fetch_article_content(url):
             return "Failed to retrieve content"
         
         soup = BeautifulSoup(response.content, 'html.parser')
-        # Find the content of the article (assuming it's within a specific class)
-        content_paragraphs = soup.select('.article__content p')
+        
+        # Locate paragraphs within the specified class for article body content
+        content_div = soup.find(class_="canvas-block canvas-block-permalink canvas-text-block canvas-text-block-permalink canvas-text-block--default")
+        content_paragraphs = content_div.find_all('p') if content_div else []
         content = " ".join(paragraph.get_text(strip=True) for paragraph in content_paragraphs)
+        
         return content if content else "No content found"
     except Exception as e:
         print(f"Error fetching article content from {url}: {e}")
         return "Error retrieving content"
 
-def save_to_csv(articles, filename="celebrity_scraped.csv"):
-    # Define the CSV path
+def save_to_csv(articles, filename="tmz_headlines.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
-    # Load existing titles to avoid duplicates
-    existing_titles = set()
-    if os.path.exists(save_path):
-        with open(save_path, mode='r', newline='', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            # Add existing article titles to the set for duplicate checking
-            existing_titles = {row[1].strip().lower() for row in reader}
-            print("Existing titles loaded.")
-
-    # Filter new articles that are not already in the CSV
-    new_articles = [article for article in articles if article[1].strip().lower() not in existing_titles]
-    print("New articles:", new_articles)
-
-    # Append only new articles to the CSV
-    if new_articles:
-        try:
-            with open(save_path, mode='a', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                # Append each new article row with article content as the comment
-                for article in new_articles:
-                    writer.writerow(article)
-            print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
-        except OSError as e:
-            print(f"Error saving data: {e}")
-    else:
-        print("No new articles to add.")
+    with open(save_path, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Title", "Link", "Celebrity Name", "Content"])
+        writer.writerows(articles)
+    print(f"Data saved to {filename}")
 
 def main():
     articles = scrape_tmz()
-    if articles:
-        save_to_csv(articles)
+    save_to_csv(articles)
 
 if __name__ == "__main__":
     main()
