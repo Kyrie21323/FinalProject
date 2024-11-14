@@ -153,7 +153,6 @@ def add_influencer(connection, influencer_data):
                 # Check if already exists
                 cursor.execute(check_influencer_query, (row['Name'],))
                 result = cursor.fetchone()
-
                 if result is None:
                     #if it doesn't, insert
                     cursor.execute(insert_influencer_query, (row['Name'],))
