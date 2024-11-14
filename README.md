@@ -37,7 +37,7 @@ The project follows a structured relational database schema using **MySQL**. The
 
 ### ER Diagram
 
-![ER Diagram](resources/ERdiagram.png)
+![ER Diagram](resources/ER_Diagram.png)
 
 ### SQL Database:
 
