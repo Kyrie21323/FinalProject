@@ -56,10 +56,11 @@ def create_database(connection):
 def create_influencers_table(connection):
     print("Creating influencers table...")
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS influencers (
+    CREATE TABLE IF NOT EXISTS Influencers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        vibe_score DECIMAL(5, 2) DEFAULT 0.00
+        vibe_score DECIMAL(5, 2) DEFAULT 0.00,
+        image_url TEXT NOT NULL
     );
     """
     try:
@@ -71,17 +72,17 @@ def create_influencers_table(connection):
         print(f"Error creating influencers table: {e}")
 
 #create content table / logic is same as influencer table
-def create_content_table(connection):
-    print("Creating content table...")
+def create_news_table(connection):
+    print("Creating news table...")
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS content (
+    CREATE TABLE IF NOT EXISTS News (
         id INT AUTO_INCREMENT PRIMARY KEY,
         influencer_id INT,
-        platform VARCHAR(50),
         url TEXT NOT NULL,
         title VARCHAR(255),
+        article TEXT NOT NULL,
         sentiment_score INT,
-        FOREIGN KEY (influencer_id) REFERENCES influencers(id) ON DELETE CASCADE
+        FOREIGN KEY (Influencer_id) REFERENCES Influencers(id) ON DELETE CASCADE
     );
     """
     try:
@@ -89,18 +90,20 @@ def create_content_table(connection):
             cursor.execute(create_table_query)
             connection.commit()
     except Error as e:
-        print(f"Error creating content table: {e}")
+        print(f"Error creating news table: {e}")
 
 #create comments table / logic is same as influencer table
-def create_comments_table(connection):
-    print("Creating comments table...")
+def create_videos_table(connection):
+    print("Creating videos table...")
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS comments (
+    CREATE TABLE IF NOT EXISTS Videos (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        content_id INT,
-        comment_text TEXT NOT NULL,
-        sentiment_score DECIMAL(5, 2),
-        FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+        influencer_id INT,
+        url TEXT NOT NULL,
+        title VARCHAR(255),
+        comment TEXT NOT NULL,
+        sentiment_score INT,
+        FOREIGN KEY (Influencer_id) REFERENCES Influencers(id) ON DELETE CASCADE
     );
     """
     try:
@@ -114,12 +117,12 @@ def create_comments_table(connection):
 def create_votes_table(connection): 
     print("Creating votes table...")
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS votes (
+    CREATE TABLE IF NOT EXISTS Votes (
         id INT AUTO_INCREMENT PRIMARY KEY,
         influencer_id INT,
-        content_id INT,
-        FOREIGN KEY (influencer_id) REFERENCES influencers(id) ON DELETE CASCADE,
-        FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+        good_vote INT DEFAULT 0,
+        bad_vote INT DEFAULT 0,
+        FOREIGN KEY (Influencer_id) REFERENCES Influencers(id) ON DELETE CASCADE
     );
     """
     try:
@@ -212,49 +215,6 @@ def add_comment(connection, comment_data):
     except Error as e:
         print(f"Error inserting comments: {e}")
 
-#add and delete columns we need/do not need for out project
-def adjust_tables(connection):
-    try:
-        with connection.cursor() as cursor:
-            #check and add columns for the 'votes' table
-            cursor.execute("SHOW COLUMNS FROM votes LIKE 'good_vote';")
-            if cursor.fetchone() is None:
-                cursor.execute("ALTER TABLE votes ADD COLUMN good_vote INT DEFAULT 0;")
-                print("New columns added successfully (if they were missing).")
-            cursor.execute("SHOW COLUMNS FROM votes LIKE 'bad_vote';")
-            if cursor.fetchone() is None:
-                cursor.execute("ALTER TABLE votes ADD COLUMN bad_vote INT DEFAULT 0;")
-                print("New columns added successfully (if they were missing).")
-
-            #same logic for 'content' table
-            cursor.execute("SHOW COLUMNS FROM content LIKE 'sentiment_score';")
-            if cursor.fetchone() is None:
-                cursor.execute("ALTER TABLE content ADD COLUMN sentiment_score DECIMAL(5, 2);")
-                print("New columns added successfully (if they were missing).")
-
-            #same logic for 'influencers' table
-            cursor.execute("SHOW COLUMNS FROM influencers LIKE 'image_url';")
-            if cursor.fetchone() is None:
-                cursor.execute("ALTER TABLE influencers ADD COLUMN image_url TEXT;")
-                print("New columns added successfully (if they were missing).")
-
-            #check and delete columns
-            cursor.execute("SHOW COLUMNS FROM votes LIKE 'vote';")
-            if cursor.fetchone() is not None:
-                #drop the 'vote' column if it exists
-                cursor.execute("ALTER TABLE votes DROP COLUMN vote;")
-                print("Column 'vote' has been removed from 'votes' table.")
-            else:
-                print("Column 'vote' does not exist in 'votes' table, no action needed.")
-
-
-            # Commit changes
-            connection.commit()
-            
-    
-    except Error as e:
-        print(f"Error adding new columns: {e}")
-
 #main function that creates the database and tables
 def main():
     #connect without specifying the database first to see if it doesn't exist
@@ -267,20 +227,17 @@ def main():
     connection = create_connection(with_database=True)
     if connection:
         create_influencers_table(connection)                #create influencers table 
-        create_content_table(connection)                    #create content table
-        create_comments_table(connection)                   #create comments table
+        create_news_table(connection)                       #create content table
+        create_videos_table(connection)                     #create comments table
         create_votes_table(connection)                      #create votes table
 
-        #add new columns to the existing tables
-        adjust_tables(connection)
-
         #save the CSV data
-        merged_data = clean_data()
+        #merged_data = clean_data()
 
         #insert cleaned data into MySQL
-        add_influencer(connection, merged_data)
-        add_content(connection, merged_data)
-        add_comment(connection, merged_data)
+        #add_influencer(connection, merged_data)
+        #add_content(connection, merged_data)
+        #add_comment(connection, merged_data)
         
         connection.close()
 
