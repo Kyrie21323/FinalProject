@@ -25,23 +25,34 @@ def scrape_tmz():
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        # Counter to limit the articles to the first 10 for each celebrity
+        count = 0
+
         # Look for articles in search results
-        for item in soup.select('a.gridler__card-link'):
-            title_tag = item.select_one('h4.gridler__card-title')
+        for item in soup.select('a.gridler__card-link.gridler__card-link--default.js-track-link.js-click-article'):
+            if count >= 10:
+                break  # Stop after the first 10 articles
+
+            # Extract the title within the link
+            title_tag = item.select_one('h4.gridler__card-title.gridler__card-title--default')
             title = title_tag.get_text(strip=True) if title_tag else "No title"
             
+            # Get the link from the 'href' attribute
             link = item['href']
             if not link.startswith('http'):
                 link = "https://www.tmz.com" + link
 
+            print(f"Celebrity: {celebrity}, Title: {title}, Link: {link}")  # Debugging print
+            
             # Fetch the body content of the article
             content = fetch_article_content(link)
+            print(f"Content for {title}: {content[:100]}...")  # Preview content for debugging
             
-            # Append the article data
-            articles.append((title, link, celebrity, content))
+            # Append the article data with the celebrity name
+            articles.append((celebrity, title, link, content))
             
-            # Brief pause to avoid overwhelming the server
-            time.sleep(1)
+            count += 1  # Increment the count for each article processed
+            time.sleep(1)  # Brief pause to avoid overwhelming the server
     
     return articles
 
@@ -50,13 +61,19 @@ def fetch_article_content(url):
     try:
         response = requests.get(url)
         if response.status_code != 200:
+            print(f"Failed to retrieve content from {url}")
             return "Failed to retrieve content"
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Locate paragraphs within the specified class for article body content
-        content_div = soup.find(class_="canvas-block canvas-block-permalink canvas-text-block canvas-text-block-permalink canvas-text-block--default")
-        content_paragraphs = content_div.find_all('p') if content_div else []
+        # Locate the section with the article content by the specified attributes
+        content_section = soup.find('section', id=lambda x: x and x.startswith("cb-"), attrs={'data-context': '{"section":"permalink","name":"text_block"}'})
+        if not content_section:
+            print(f"Content section not found for {url}")
+            return "Content section not found"
+        
+        # Extract the text within <p> tags inside the section
+        content_paragraphs = content_section.find_all('p')
         content = " ".join(paragraph.get_text(strip=True) for paragraph in content_paragraphs)
         
         return content if content else "No content found"
@@ -67,22 +84,25 @@ def fetch_article_content(url):
 def save_to_csv(articles, filename="celebrity_scraped.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
+    # Load existing titles to avoid duplicates
     existing_titles = set()
     if os.path.exists(save_path):
         with open(save_path, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.reader(file)
             existing_titles = {row[1].strip().lower() for row in reader}
-            print(f"existing titles are", existing_titles)
-    new_articles = [article for article in articles if article not in existing_titles]
-    print(f"new articles are:",new_articles)
-    #append only new articles
-
+            print("Existing titles loaded:", existing_titles)
+    
+    # Filter new articles based on titles not in existing_titles
+    new_articles = [article for article in articles if article[1].strip().lower() not in existing_titles]
+    print("New articles:", new_articles)
+    
+    # Append only new articles to the CSV
     if new_articles:
         try:
             with open(save_path, mode='a', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-            for article in articles:
-                writer.writerow(article)
+                for article in new_articles:
+                    writer.writerow(article)
             print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
         except OSError as e:
             print(f"Error saving data: {e}")
