@@ -227,7 +227,52 @@ def process_yt_videos_csv(connection, file_path):
     else:
         print(f"Missing required columns in file: {file_path}")
 
+#add articles into the News table
+def add_news(connection, news_data):
+    insert_news_query = """
+    INSERT INTO News (influencer_id, url, title, article, sentiment_score)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    check_influencer_query = "SELECT id FROM Influencers WHERE name = %s"
+    check_news_query = "SELECT id FROM News WHERE url = %s"
+    try:
+        with connection.cursor() as cursor:
+            for _, row in news_data.iterrows():
+                #find influencer_id using the celebrity name
+                cursor.execute(check_influencer_query, (row['Celebrity'],))
+                influencer_id = cursor.fetchone()
+                
+                if influencer_id:
+                    #check if the news article already exists
+                    cursor.execute(check_news_query, (row['URL'],))
+                    news_exists = cursor.fetchone()
+                    if not news_exists:
+                        #insert the new news article
+                        cursor.execute(insert_news_query, (
+                            influencer_id[0],                                       #ID from the Influencers table
+                            row['URL'],
+                            row['Title'],
+                            row['Content'],
+                            None                                                    #no sentiment score available yet
+                        ))
+                        connection.commit()
+                        print(f"News '{row['Title']}' added for celebrity '{row['Celebrity']}'.")
+                    else:
+                        print(f"News article with URL '{row['URL']}' already exists.")
+                else:
+                    print(f"Celebrity '{row['Celebrity']}' not found in the database.")
+    except Error as e:
+        print(f"Error inserting into News table: {e}")
 
+#process the TMZ data CSV, same logic
+def process_tmz_news_csv(connection, file_path):
+    print(f"Processing TMZ data from: {file_path}")
+    data = pd.read_csv(file_path, names=['Celebrity', 'Title', 'URL', 'Content'], header=0)
+    required_columns = {'Celebrity', 'Title', 'URL', 'Content'}
+    if required_columns.issubset(data.columns):
+        add_news(connection, data)
+    else:
+        print(f"Missing required columns in file: {file_path}")
 
 
 
@@ -248,18 +293,12 @@ def main():
         create_videos_table(connection)                     #create comments table
         create_votes_table(connection)                      #create votes table
 
-        #process the influencers.csv file and add it
+        #process influencers.csv file and add it to the Influencers table
         process_influencers_csv(connection, "scraping/influencers.csv")
         #process youtube .csv file and add it to Videos table
         process_yt_videos_csv(connection, "scraping/yt_scraped.csv")
-
-        #save the CSV data
-        #merged_data = clean_data()
-
-        #insert cleaned data into MySQL
-        #add_influencer(connection, merged_data)
-        #add_content(connection, merged_data)
-        #add_comment(connection, merged_data)
+        #process TMZ data and add it to the News table
+        process_tmz_news_csv(connection, "scraping/tmz_scraped.csv")
         
         connection.close()
 

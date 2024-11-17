@@ -10,8 +10,8 @@ def scrape_tmz():
     celebrities = [
         "Taylor Swift", "Kanye West", "MrBeast", "The Weeknd", "Justin Bieber",
         "Jake Paul", "Cardi B", "Drake", "P Diddy", "Rihanna", "Billie Eilish",
-        "Will Smith", "Dwayne Johnson", "Elon Musk", "Kim Kardashian",
-        "Mark Wahlberg", "Joe Rogan", "Chris Brown", "Lady Gaga", "Kai Cenat"
+        "Will Smith", "Dwayne Johnson", "Ariana Grande", "Selena Gomez",
+        "Casey Neistat", "Joe Rogan", "Chris Brown", "Lady Gaga", "Kai Cenat"
     ]
     
     articles = []
