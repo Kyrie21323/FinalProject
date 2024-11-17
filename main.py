@@ -132,95 +132,48 @@ def create_votes_table(connection):
     except Error as e:
         print(f"Error creating votes table: {e}")
 
-
-
-
-
-
-
-
-
-#read merged and cleaned data from .csv
-def clean_data():
-    merged_file = os.path.join('scraping', 'celebrity_scraped.csv')  # path to the merged CSV file
-    data_df = pd.read_csv(merged_file)
-    #select only required columns
-    data_df = data_df[['Name', 'Title', 'URL', 'comment']].dropna(subset=['Name', 'Title', 'URL'])
-    return data_df
-
-#add influencers into database
-def add_influencer(connection, influencer_data):
-    #check if an influencer exists
-    check_influencer_query = "SELECT id FROM influencers WHERE name = %s"
-    #insert the new influencer
-    insert_influencer_query = "INSERT INTO influencers (name) VALUES (%s)"
+#add influencers into the Influencers table
+def add_influencers(connection, influencers_data):
+    insert_influencer_query = """
+    INSERT INTO Influencers (name, image_url)
+    VALUES (%s, %s)
+    """
+    check_influencer_query = "SELECT id FROM Influencers WHERE name = %s"
 
     try:
         with connection.cursor() as cursor:
-            for _, row in influencer_data.iterrows():
-                # Check if already exists
+            for _, row in influencers_data.iterrows():
+                #check if influencer already exists
                 cursor.execute(check_influencer_query, (row['Name'],))
                 result = cursor.fetchone()
                 if result is None:
-                    #if it doesn't, insert
-                    cursor.execute(insert_influencer_query, (row['Name'],))
+                    #insert the new influencer
+                    cursor.execute(insert_influencer_query, (row['Name'], row['Image_URL']))
                     connection.commit()
                     print(f"Influencer '{row['Name']}' added.")
+                else:
+                    print(f"Influencer '{row['Name']}' already exists.")
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
-#add content into database / checking for existing logic is same as add_influencer
-def add_content(connection, content_data):
-    #check if the content exists
-    check_content_query = "SELECT id FROM content WHERE url = %s"
-    #insert new content
-    insert_content_query = "INSERT INTO content (influencer_id, platform, url, title) VALUES (%s, %s, %s, %s)"
-    try:
-        with connection.cursor() as cursor:
-            for _, row in content_data.iterrows():
-                #check if content exists
-                cursor.execute(check_content_query, (row['URL'],))
-                result = cursor.fetchone()
-                if result is None:
-                    #determine platform based on comment presence
-                    platform = "YouTube" if pd.notna(row['comment']) else "TMZ"
-                    #get the influencer ID
-                    cursor.execute("SELECT id FROM influencers WHERE name = %s", (row['Name'],))
-                    influencer_id = cursor.fetchone()
-                    if influencer_id:
-                        # Insert the content with the determined platform
-                        cursor.execute(insert_content_query, (influencer_id[0], platform, row['URL'], row['Title']))
-                        connection.commit()
-                        print(f"Content '{row['Title']}' added for influencer '{row['Name']}' on platform '{platform}'.")
-                    else:
-                        print(f"Influencer '{row['Name']}' not found for content '{row['Title']}'.")
-    except Error as e:
-        print(f"Error inserting content: {e}")
+#process influencers.csv file
+def process_influencers_csv(connection, file_path):
+    print(f"Processing influencers data from: {file_path}")
+    data = pd.read_csv(file_path, names=['Name', 'Image_URL'], header=0)                #use cleaned column names
+    
+    #ensure required columns are present
+    required_columns = {'Name', 'Image_URL'}
+    if required_columns.issubset(data.columns):
+        add_influencers(connection, data)
+    else:
+        print(f"Missing required columns in file: {file_path}")
 
-#add comments into database / checking for existing logic is same as add_influencer
-def add_comment(connection, comment_data):
-    check_comment_query = "SELECT id FROM comments WHERE comment_text = %s AND content_id = %s"
 
-    insert_comment_query = insert_comment_query = "INSERT INTO comments (content_id, comment_text) VALUES (%s, %s)"
-    try:
-        with connection.cursor() as cursor:
-            for _, row in comment_data.dropna(subset=['comment']).iterrows():
-                #find the content ID based on the title
-                content_id_query = "SELECT id FROM content WHERE title = %s"
-                cursor.execute(content_id_query, (row['Title'],))
-                content_id = cursor.fetchone()
-                if content_id:
-                    #check if the comment already exists
-                    cursor.execute(check_comment_query, (row['comment'], content_id[0]))
-                    result = cursor.fetchone()
-                    if result is None:
-                        #if the comment doesn't exist, insert it
-                        cursor.execute(insert_comment_query, (content_id[0], row['comment']))
-                        connection.commit()
-                        print(f"Comment added for content '{row['Title']}'.")
 
-    except Error as e:
-        print(f"Error inserting comments: {e}")
+
+
+
+
 
 #main function that creates the database and tables
 def main():
@@ -237,6 +190,9 @@ def main():
         create_news_table(connection)                       #create content table
         create_videos_table(connection)                     #create comments table
         create_votes_table(connection)                      #create votes table
+
+        #process the influencers.csv file and add it
+        process_influencers_csv(connection, "scraping/influencers.csv")
 
         #save the CSV data
         #merged_data = clean_data()
