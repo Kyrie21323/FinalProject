@@ -168,7 +168,64 @@ def process_influencers_csv(connection, file_path):
     else:
         print(f"Missing required columns in file: {file_path}")
 
+#some names in youtube channels are different from our database
+def add_videos_with_name_mapping(connection, yt_data):
+    #define name mapping
+    name_mapping = {
+        'Diddy': 'P Diddy',
+        'The Rock': 'Dwayne Johnson',
+        'CaseyNeistat': 'Casey Neistat',
+        'PowerfulJRE': 'Joe Rogan',
+        'Kai Cenat Live': 'Kai Cenat'
+    }
+    #apply the name mapping
+    yt_data['Name'] = yt_data['Name'].replace(name_mapping)
+    insert_videos_query = """
+    INSERT INTO Videos (influencer_id, url, title, comment, sentiment_score)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    check_video_query = """
+    SELECT id FROM Videos WHERE url = %s AND comment = %s
+    """
+    check_influencer_query = "SELECT id FROM Influencers WHERE name = %s"
 
+    try:
+        with connection.cursor() as cursor:
+            for _, row in yt_data.iterrows():
+                #find influencer_id using the mapped name
+                cursor.execute(check_influencer_query, (row['Name'],))
+                influencer_id = cursor.fetchone()
+                if influencer_id:
+                    #check if the video and comment already exist
+                    cursor.execute(check_video_query, (row['URL'], row['comment']))
+                    video_exists = cursor.fetchone()
+                    if not video_exists:
+                        #insert the new video and comment
+                        cursor.execute(insert_videos_query, (
+                            influencer_id[0],                                   #ID from the Influencers table
+                            row['URL'],
+                            row['Title'],
+                            row['comment'],
+                            None                                                #no sentiment score available yet in this stage
+                        ))
+                        connection.commit()
+                        print(f"Video '{row['Title']}' added for influencer '{row['Name']}'.")
+                    else:
+                        print(f"Video '{row['Title']}' with the same comment already exists.")
+                else:
+                    print(f"Influencer '{row['Name']}' not found in the database.")
+    except Error as e:
+        print(f"Error inserting into Videos table: {e}")
+
+#process the YouTube data CSV, same logic
+def process_yt_videos_csv(connection, file_path):
+    print(f"Processing YouTube data from: {file_path}")
+    data = pd.read_csv(file_path)
+    required_columns = {'Name', 'URL', 'Title', 'comment'}
+    if required_columns.issubset(data.columns):
+        add_videos_with_name_mapping(connection, data)
+    else:
+        print(f"Missing required columns in file: {file_path}")
 
 
 
@@ -193,6 +250,8 @@ def main():
 
         #process the influencers.csv file and add it
         process_influencers_csv(connection, "scraping/influencers.csv")
+        #process youtube .csv file and add it to Videos table
+        process_yt_videos_csv(connection, "scraping/yt_scraped.csv")
 
         #save the CSV data
         #merged_data = clean_data()
