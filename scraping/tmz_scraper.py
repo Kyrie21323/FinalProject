@@ -42,11 +42,11 @@ def scrape_tmz():
             if not link.startswith('http'):
                 link = "https://www.tmz.com" + link
 
-            print(f"Celebrity: {celebrity}, Title: {title}, Link: {link}")  # Debugging print
+            #print(f"Celebrity: {celebrity}, Title: {title}, Link: {link}")  # Debugging print
             
             # Fetch the body content of the article
             content = fetch_article_content(link)
-            print(f"Content for {title}: {content[:100]}...")  # Preview content for debugging
+            #print(f"Content for {title}: {content[:100]}...")  # Preview content for debugging
             
             # Append the article data with the celebrity name
             articles.append((celebrity, title, link, content))
@@ -90,7 +90,7 @@ def save_to_csv(articles, filename="tmz_scraped.csv"):
         with open(save_path, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.reader(file)
             existing_titles = {row[1].strip().lower() for row in reader}
-            print("Existing titles loaded:", existing_titles)
+            #print("Existing titles loaded:", existing_titles)
     
     # Filter new articles based on titles not in existing_titles
     new_articles = [article for article in articles if article[1].strip().lower() not in existing_titles]
@@ -103,7 +103,7 @@ def save_to_csv(articles, filename="tmz_scraped.csv"):
                 writer = csv.writer(file)
                 for article in new_articles:
                     writer.writerow(article)
-            print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
+            #print(f"TMZ data appended to {save_path} with {len(new_articles)} new entries.")
         except OSError as e:
             print(f"Error saving data: {e}")
     else:

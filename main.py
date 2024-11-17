@@ -4,6 +4,10 @@ import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 
+#import the scraper modules
+from scraping.tmz_scraper import main as tmz_scraper_main
+from scraping.youtube_scraper import main as youtube_scraper_main
+
 #load variables from the .env file
 load_dotenv()
 
@@ -151,8 +155,6 @@ def add_influencers(connection, influencers_data):
                     cursor.execute(insert_influencer_query, (row['Name'], row['Image_URL']))
                     connection.commit()
                     print(f"Influencer '{row['Name']}' added.")
-                else:
-                    print(f"Influencer '{row['Name']}' already exists.")
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
@@ -210,8 +212,6 @@ def add_videos_with_name_mapping(connection, yt_data):
                         ))
                         connection.commit()
                         print(f"Video '{row['Title']}' added for influencer '{row['Name']}'.")
-                    else:
-                        print(f"Video '{row['Title']}' with the same comment already exists.")
                 else:
                     print(f"Influencer '{row['Name']}' not found in the database.")
     except Error as e:
@@ -257,8 +257,6 @@ def add_news(connection, news_data):
                         ))
                         connection.commit()
                         print(f"News '{row['Title']}' added for celebrity '{row['Celebrity']}'.")
-                    else:
-                        print(f"News article with URL '{row['URL']}' already exists.")
                 else:
                     print(f"Celebrity '{row['Celebrity']}' not found in the database.")
     except Error as e:
@@ -274,11 +272,15 @@ def process_tmz_news_csv(connection, file_path):
     else:
         print(f"Missing required columns in file: {file_path}")
 
-
-
-
-#main function that creates the database and tables
+#main function that runs the scraping files and creates the database and tables
 def main():
+    #run TMZ scraper
+    print("Running TMZ scraper...")
+    tmz_scraper_main()
+    #run YouTube scraper
+    print("Running YouTube scraper...")
+    youtube_scraper_main()
+
     #connect without specifying the database first to see if it doesn't exist
     connection = create_connection(with_database=False)
     if connection:
