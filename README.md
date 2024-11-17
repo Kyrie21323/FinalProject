@@ -8,32 +8,33 @@ VibeCHECK is a web-based application that allows users to analyze influencer beh
 
 The project follows a structured relational database schema using **MySQL**. The data is organized into four key tables:
 
-- **Influencers**: Contains information about influencers.
+### 1. **Influencers**
+- **id**: INT, Primary Key
+- **name**: VARCHAR, Influencer's name
+- **vibe_score**: DECIMAL, Calculated score based on votes
+- **image_url**: TEXT, URL for the influencer's profile image
 
-  - `id`: INT, Primary Key
-  - `name`: VARCHAR, Influencer's name
-  - `vibe_score`: DECIMAL, Calculated score based on votes - to be made
+### 2. **Videos**
+- **id**: INT, Primary Key
+- **influencer_id**: INT, Foreign Key references `influencers`
+- **url**: TEXT, Link to the video
+- **title**: VARCHAR, Title of the video
+- **comment**: TEXT, User comment on the video
+- **sentiment_score**: INT, Sentiment analysis score (to be implemented)
 
-- **Content**: Stores information about influencers' content (e.g., posts or videos).
+### 3. **News**
+- **id**: INT, Primary Key
+- **influencer_id**: INT, Foreign Key references `influencers`
+- **url**: TEXT, Link to the news article
+- **title**: VARCHAR, Title of the article
+- **article**: TEXT, Body content of the article
+- **sentiment_score**: INT, Sentiment analysis score (to be implemented)
 
-  - `id`: INT, Primary Key
-  - `influencer_id`: INT, Foreign Key references `influencers`
-  - `platform`: VARCHAR, The platform of the content (e.g., YouTube)
-  - `url`: TEXT, Link to the content
-  - `title`: VARCHAR, Title of the content
-
-- **Comments**: Stores the comments for each content.
-
-  - `id`: INT, Primary Key
-  - `content_id`: INT, Foreign Key references `content`
-  - `comment_text`: TEXT, Comment itself
-  - `sentiment_score`: DECIMAL, Sentiment score for the comment - to be made
-
-- **Votes**: Tracks user votes on influencer content.
-  - `id`: INT, Primary Key
-  - `influencer_id`: INT, Foreign Key references `influencers`
-  - `content_id`: INT, Foreign Key references `content`
-  - `vote`: ENUM ('good', 'bad'), Represents how people voted - to be made
+### 4. **Votes**
+- **id**: INT, Primary Key
+- **influencer_id**: INT, Foreign Key references `influencers`
+- **good_vote**: INT, Count of 'good' votes
+- **bad_vote**: INT, Count of 'bad' votes
 
 ### ER Diagram
 
