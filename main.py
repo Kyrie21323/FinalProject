@@ -77,7 +77,7 @@ def create_news_table(connection):
     create_table_query = """
     CREATE TABLE IF NOT EXISTS News (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        influencer_id INT,
+        influencer_id INT NOT NULL,
         url TEXT NOT NULL,
         title VARCHAR(255),
         article TEXT NOT NULL,
@@ -98,7 +98,7 @@ def create_videos_table(connection):
     create_table_query = """
     CREATE TABLE IF NOT EXISTS Videos (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        influencer_id INT,
+        influencer_id INT NOT NULL,
         url TEXT NOT NULL,
         title VARCHAR(255),
         comment TEXT NOT NULL,
@@ -119,7 +119,7 @@ def create_votes_table(connection):
     create_table_query = """
     CREATE TABLE IF NOT EXISTS Votes (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        influencer_id INT,
+        influencer_id INT NOT NULL,
         good_vote INT DEFAULT 0,
         bad_vote INT DEFAULT 0,
         FOREIGN KEY (Influencer_id) REFERENCES Influencers(id) ON DELETE CASCADE
@@ -131,6 +131,14 @@ def create_votes_table(connection):
             connection.commit()
     except Error as e:
         print(f"Error creating votes table: {e}")
+
+
+
+
+
+
+
+
 
 #read merged and cleaned data from .csv
 def clean_data():
