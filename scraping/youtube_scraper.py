@@ -1,5 +1,5 @@
 # import the necessary packages
-#import creds
+import creds
 from googleapiclient.discovery import build
 import pandas as pd
 from googleapiclient.errors import HttpError
@@ -10,7 +10,7 @@ from googleapiclient.errors import HttpError
 # for security reasons, this file is not included in the repository
 # structure of the creds.py file:
 
-API_KEY = 'AIzaSyB0XldrjwICe-j0TUtWJyraeEkFbnYcAu8'
+API_KEY = creds.YT_api
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCqECaJ8Gagnn7YCbPEzWH6g',
                 'UCs6eXM7s8Vl5WcECcRHc2qQ',
