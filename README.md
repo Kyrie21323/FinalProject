@@ -62,36 +62,28 @@ While MongoDB offers flexibility in schema design, our need for structured data 
 
 1. **Clone the Repository**
    ```
-   git clone https://github.com/your-username/vibecheck.git](https://github.com/Kyrie21323/FinalProject.git
-   cd vibecheck
+   git clone 
    ```
-2. **Navigate to the project directory**(??)
-
-```
-cd path/to/finalproject
-```
-
+2. **Navigate to the project directory**
+   ```
+   cd path/to/finalproject
+   ```
 3. **Set Up Virtual Environment**
-
-```
-python -m venv .venv
-#On Windows:
-.venv\Scripts\activate
-#On macOS/Linux:
-source .venv/bin/activate
-```
-
+   ```
+   python -m venv .venv
+   #On Windows:
+   .venv\Scripts\activate
+   #On macOS/Linux:
+   source .venv/bin/activate
+   ```
 4. **Install Required Packages - requirements.txt file**
-
-```
-pip install -r requirements.txt
-```
-
+   ```
+   pip install -r requirements.txt
+   ```
 5. **Set up your .env file**
   - Create a new file in the project root directory and name it .env
   - Open the .env file in a text editor
   - Add your MySQL connection details in the following format:
-
 ```
 DB_HOST=your_mysql_host
 DB_USER=your_mysql_username
@@ -100,9 +92,7 @@ DB_NAME=your_database_name
 ```
   - Replace the placeholders with your actual MySQL connection details
   - Save and close the .env file
-
-6. **Create the database and tables, by running the main.py script**
-
+6. **Run the Scrapers and Database Setup**
 ```
 python main.py
 ```
@@ -122,13 +112,22 @@ python main.py
    - **Minimize Website Impact**: Limit scraping frequency to avoid server overload and ensure responsible data collection.
    - **Ensure Transparency**: Attribute TMZ as the data source and avoid sharing personally identifiable information.
 
-3. **Reddit**
-   - **Follow Reddit's API Terms**: Use Reddit’s official API to gather data rather than web scraping, following the platform's terms of service and API rules.
-   - **Respect User Privacy**: Posts and comments on Reddit can contain personal or sensitive information. Avoid collecting or sharing identifiable data without consent, and ensure that content is anonymized when possible.
-   - **Attribution and Responsible Use**: Attribute Reddit as the source of the data and avoid using the data for commercial purposes unless permission is granted. Ensure data is not taken out of context or used to mislead.
+## Data Integration
 
-## YouTube Data Integration
-The project utilizes the YouTube Data API v3 to extract data from YouTube channels. This includes channel statistics, video details, and top comments. The following steps outline the process:
+### Youtube Data
+   - The project utilizes the YouTube Data API v3 to extract data from YouTube channels. This includes channel statistics, video details, and top comments. The following steps outline the process:
+   - What it Does: Scrapes data from a list of YouTube channels, including video titles, URLs, and top comments.
+   - Process:
+      - Fetches channel details using the YouTube Data API.
+      - Extracts the latest video and top comments.
+      - Stores the data in the Videos table in the database.
+    
+### TMZ Data
+   - What it Does: Scrapes articles related to influencers from TMZ.
+   - Process:
+      - Searches TMZ for a predefined list of influencers.
+      - Extracts article titles, URLs, and content.
+      - Stores the data in the News table in the database.
 
 ### API Setup:
 - Obtain an API key from the Google Developer Console.
