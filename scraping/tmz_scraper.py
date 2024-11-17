@@ -81,7 +81,7 @@ def fetch_article_content(url):
         print(f"Error fetching article content from {url}: {e}")
         return "Error retrieving content"
 
-def save_to_csv(articles, filename="celebrity_scraped.csv"):
+def save_to_csv(articles, filename="tmz_scraped.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
     # Load existing titles to avoid duplicates

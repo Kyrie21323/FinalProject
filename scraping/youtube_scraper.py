@@ -130,4 +130,4 @@ for channel in channel_data:
 
 # Convert the final data to a DataFrame and save to CSV
 final_df = pd.DataFrame(final_data)
-final_df.to_csv('celebrity_scraped.csv', index=False)
+final_df.to_csv('yt_scraped.csv', index=False)
