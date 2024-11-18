@@ -21,37 +21,49 @@ async function getContent() {
     }
 }
 // Function to update a vote (PUT request)
-async function updateVote(influencerId, contentId, isThumbUp) {
-    try {
-        // Step 1: Fetch the current vote data
-        const fetchResponse = await axios.get(`${BASE_URL}/votes/${influencerId}/${contentId}`);
-        const currentVote = fetchResponse.data;
+// Function to update vote for an influencer
+function updateVote(influencerId, isGoodVote) {
+    // Prepare the data for updating the vote
+    const voteUpdateData = isGoodVote
+        ? { good_vote: 1, bad_vote: 0 }  // Increment good_vote by 1, no change to bad_vote
+        : { good_vote: 0, bad_vote: 1 }; // Increment bad_vote by 1, no change to good_vote
 
-        // Step 2: Update the vote values based on thumb up or thumb down
-        const updatedVote = {
-            influencer_id: influencerId,
-            content_id: contentId,
-            good_vote: isThumbUp ? currentVote.good_vote + 1 : currentVote.good_vote,
-            bad_vote: isThumbUp ? currentVote.bad_vote : currentVote.bad_vote + 1
-        };
+    // URL pointing to the FastAPI endpoint
+    const url = `http://127.0.0.1:8000/Votes/${influencerId}`;
 
-        // Step 3: Send PUT request to update the vote in the backend
-        const updateResponse = await axios.put(`${BASE_URL}/votes`, updatedVote);
-
-        console.log("Vote updated successfully:", updateResponse.data);
-    } catch (error) {
-        console.error("Error updating vote:", error.response ? error.response.status : error.message);
-    }
+    // Make a PUT request using fetch API
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(voteUpdateData),
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json(); // Parse JSON response
+        } else if (response.status === 404) {
+            throw new Error('Vote not found');
+        } else {
+            throw new Error('Failed to update vote');
+        }
+    })
+    .then(data => {
+        console.log('Vote updated successfully:', data);
+        // Optionally, update the UI here based on the response
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });
 }
 
 // Example usage:
-getInfluencers(); // Fetch all influencers
-getContent(); // Fetch all content
-// Example usage when user clicks thumbs up
-document.getElementById('thumb-up').addEventListener('click', () => {
-    updateVote(2, 11, true);  // true means thumbs up (increment good vote)
+// To increment good vote (thumbs up) for influencer with ID 19
+document.getElementById('thumbsUpButton').addEventListener('click', () => {
+    updateVote(19, true);  // true indicates thumbs up (good vote)
 });
-// Example usage when user clicks thumbs down
-document.getElementById('thumb-down').addEventListener('click', () => {
-    updateVote(2, 11, false);  // false means thumbs down (increment bad vote)
+
+// To increment bad vote (thumbs down) for influencer with ID 19
+document.getElementById('thumbsDownButton').addEventListener('click', () => {
+    updateVote(19, false);  // false indicates thumbs down (bad vote)
 });
