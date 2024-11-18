@@ -11,3 +11,4 @@ fastapi
 uvicorn
 sqlalchemy
 pymysql
+textblob
