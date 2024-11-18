@@ -12,7 +12,7 @@ import os
 # structure of the creds.py file:
 load_dotenv()
 
-API_KEY = os.getenv(YT_api)
+API_KEY = os.getenv('YT_api')
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCqECaJ8Gagnn7YCbPEzWH6g',
                 'UCs6eXM7s8Vl5WcECcRHc2qQ',
