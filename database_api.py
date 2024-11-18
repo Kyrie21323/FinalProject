@@ -13,6 +13,7 @@ class VoteCreate(BaseModel):
     good_vote: int
     bad_vote: int
 
+# Define the Pydantic model for input validation
 class VoteUpdate(BaseModel):
     good_vote: int
     bad_vote: int
@@ -101,36 +102,13 @@ async def get_vote(influencer_id: int):
         connection.close()
 
 
-# @app.get("/Votes/{influencer_id}")
-# async def get_vote(influencer_id: int):
-#     connection = get_database_connection()
-#     if connection is None:
-#         raise HTTPException(status_code=500, detail="Could not connect to the database")
-
-#     try:
-#         with connection.cursor(dictionary=True) as cursor:
-#             cursor.execute(
-#                 "SELECT * FROM Votes WHERE influencer_id = %s",
-#                 (influencer_id)
-#             )
-#             vote = cursor.fetchone()
-#             if vote is None:
-#                 # Return a 404 error if no vote is found
-#                 raise HTTPException(status_code=404, detail="Vote not found")
-#             return vote
-#     except Error as e:
-#         raise HTTPException(status_code=500, detail=f"Error fetching vote: {e}")
-#     finally:
-#         connection.close()
-
-
-@app.get("/content") # endpoint to fetch the data from the content table
+@app.get("/News") # endpoint to fetch the data from the content table
 async def get_content():
-    return fetch_all_from_table("content")
+    return fetch_all_from_table("News")
 
-@app.get("/comments") # endpoint to fetch the data from the comments table
+@app.get("/Videos") # endpoint to fetch the data from the comments table
 async def get_comments():
-    return fetch_all_from_table("comments")
+    return fetch_all_from_table("Videos")
 
 @app.get("/Votes") # endpoint to fetch the data from the votes table
 async def get_votes():
@@ -157,131 +135,45 @@ async def create_vote(vote: VoteCreate):
     finally:
         connection.close()
 
-# @app.put to update the item in the table
-@app.put("/Votes", status_code=200)
-async def upsert_vote(vote: VoteCreate):
+# create the API endpoint to update the vote in the votes table
+@app.put("/Votes/{influencer_id}") # endpoint to update the vote in the votes table based on the influencer_id
+async def update_or_create_vote(influencer_id: int, vote_data: VoteUpdate):
     connection = get_database_connection()
     if connection is None:
         raise HTTPException(status_code=500, detail="Could not connect to the database")
 
     try:
-        with connection.cursor() as cursor:
-            # Upsert query: Insert new vote or update existing vote
-            cursor.execute(
-                """
-                INSERT INTO Votes (influencer_id, good_vote, bad_vote)
-                VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    good_vote = good_vote + VALUES(good_vote),
-                    bad_vote = bad_vote + VALUES(bad_vote);
-                """,
-                (vote.influencer_id, vote.good_vote, vote.bad_vote)
-            )
-            connection.commit()
-            return {"message": "Vote updated or added successfully"}
-    except IntegrityError as e:
-        raise HTTPException(status_code=400, detail="Database integrity error")
-    except Error as e:
-        raise HTTPException(status_code=500, detail=f"Error processing vote: {e}")
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Check if a vote entry exists for the given influencer_id
+            cursor.execute("SELECT * FROM Votes WHERE influencer_id = %s", (influencer_id,))
+            existing_vote = cursor.fetchone()
+
+            if existing_vote:
+                # If vote exists, update the good_vote and bad_vote
+                cursor.execute(
+                    """
+                    UPDATE Votes
+                    SET good_vote = good_vote + %s, bad_vote = bad_vote + %s
+                    WHERE influencer_id = %s
+                    """,
+                    (vote_data.good_vote, vote_data.bad_vote, influencer_id)
+                )
+                connection.commit()
+                return {"message": "Vote updated successfully"}
+            else:
+                # If vote does not exist, insert a new row
+                cursor.execute(
+                    """
+                    INSERT INTO Votes (influencer_id, good_vote, bad_vote)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (influencer_id, vote_data.good_vote, vote_data.bad_vote)
+                )
+                connection.commit()
+                return {"message": "Vote created successfully"}
+    except pymysql.MySQLError as e:
+        raise HTTPException(status_code=500, detail=f"Error updating or creating vote: {e}")
     finally:
         connection.close()
 
 
-
-
-# @app.put("/Votes")
-# async def update_or_create_vote(vote: VoteCreate):
-#     connection = get_database_connection()
-#     if connection is None:
-#         raise HTTPException(status_code=500, detail="Could not connect to the database")
-
-#     try:
-#         with connection.cursor() as cursor:
-#             # Check if the vote already exists
-#             cursor.execute(
-#                 "SELECT * FROM Votes WHERE influencer_id = %s", # SQL query to check if the vote already exists
-#                 (vote.influencer_id) # values to be checked
-#             )
-#             existing_vote = cursor.fetchone() # fetch the vote if it already exists
-
-#             if existing_vote is None:
-#                 # If no existing record found, insert a new one
-#                 cursor.execute(
-#                     "INSERT INTO Votes (influencer_id, good_vote, bad_vote) VALUES (%s, %s, %s)", # based on the parametets passed we insert the new vote
-#                     (vote.influencer_id, vote.good_vote, vote.bad_vote)
-#                 )
-#                 message = "Vote created successfully"
-#             else:
-#                 # Otherwise update the existing record
-#                 cursor.execute(
-#                     "UPDATE Votes SET good_vote = %s, bad_vote = %s WHERE influencer_id = %s",
-#                     (vote.good_vote, vote.bad_vote, vote.influencer_id)
-#                 )
-#                 message = "Vote updated successfully"
-
-#             connection.commit()
-#             return {"message": message}
-    
-#     except Error as e:
-#         raise HTTPException(status_code=500, detail=f"Error processing vote: {e}")
-    
-#     finally:
-#         connection.close()
-
-
-# @app.put("/votes/update")
-# async def update_vote(influencer_id: int, content_id: int, new_vote: str):
-#     connection = get_database_connection()
-#     if connection is None:
-#         raise HTTPException(status_code=500, detail="Could not connect to the database")
-
-#     try:
-#         with connection.cursor() as cursor:
-#             # Check if the vote exists first
-#             cursor.execute(
-#                 "SELECT * FROM votes WHERE influencer_id = %s AND content_id = %s", 
-#                 (influencer_id, content_id)
-#             )
-#             vote_record = cursor.fetchone()
-
-#             if not vote_record:
-#                 raise HTTPException(status_code=404, detail="Vote record not found")
-
-#             # Update the vote value
-#             cursor.execute(
-#                 "UPDATE votes SET vote = %s WHERE influencer_id = %s AND content_id = %s", 
-#                 (new_vote, influencer_id, content_id)
-#             )
-#             connection.commit()  # Commit changes to the database
-
-#             return {"message": "Vote updated successfully"}
-    
-#     except Error as e:
-#         raise HTTPException(status_code=500, detail=f"Error updating vote: {e}")
-    
-#     finally:
-#         connection.close()
-
-# to change the acutual database schema so that we can update the vote easily
-# def create_votes_table(connection):
-#     print("Creating votes table...")
-#     create_table_query = """
-#     CREATE TABLE IF NOT EXISTS votes (
-#         id INT AUTO_INCREMENT PRIMARY KEY,
-#         influencer_id INT,
-#         content_id INT,
-#         vote ENUM('upvote', 'downvote') NOT NULL,
-#         FOREIGN KEY (influencer_id) REFERENCES influencer(id) ON DELETE CASCADE,
-#         FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
-#     );
-#     """
-#     try:
-#         with connection.cursor() as cursor:
-#             cursor.execute(create_table_query)
-#             connection.commit()
-#             print("Table 'votes' created successfully.")
-#     except Error as e:
-#         print(f"Error creating votes table: {e}")
-
-# how to use the put request using API call in python:
-# I've implitmented that in another file called test_api.py we can later delete that.

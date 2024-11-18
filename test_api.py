@@ -31,50 +31,45 @@ def get_content():
 
 
 # Function to update a vote (PUT request)
-def update_vote(influencer_id, content_id, is_thumb_up):
+import requests
+
+def update_vote(influencer_id, is_good_vote):
     """
-    Function to update a vote for a given influencer and content.
-    
+    Update the vote for a given influencer by incrementing either good_vote or bad_vote by 1.
+
     Parameters:
-    - influencer_id (int): The ID of the influencer.
-    - content_id (int): The ID of the content.
-    - is_thumb_up (bool): True if it's a thumbs up, False if it's a thumbs down.
-    
-    Returns:
-    - None: Prints success or failure message based on the response.
+    influencer_id (int): The ID of the influencer.
+    is_good_vote (bool): If True, increment good votes. If False, increment bad votes.
     """
     
-    # Step 1: Fetch current vote data from backend
-    try:
-        fetch_response = requests.get(f"{BASE_URL}/votes/{influencer_id}/{content_id}")
-        print(fetch_response)
-        if fetch_response.status_code == 404:
-            print("Vote not found.")
-            return
-        elif fetch_response.status_code != 200:
-            print(f"Failed to fetch current vote data. Status code: {fetch_response.status_code}")
-            return
-        
-        current_vote = fetch_response.json()
-        
-        # Step 2: Update vote based on whether it's a thumbs up or thumbs down
-        updated_vote = {
-            "influencer_id": influencer_id,
-            "content_id": content_id,
-            "good_vote": current_vote['good_vote'] + 1 if is_thumb_up else current_vote['good_vote'],
-            "bad_vote": current_vote['bad_vote'] + 1 if not is_thumb_up else current_vote['bad_vote']
+    # Prepare the data for updating the vote
+    if is_good_vote:
+        vote_update_data = {
+            'good_vote': 1,  # Increment good vote by 1
+            'bad_vote': 0    # No change to bad votes
+        }
+    else:
+        vote_update_data = {
+            'good_vote': 0,  # No change to good votes
+            'bad_vote': 1    # Increment bad vote by 1
         }
 
-        # Step 3: Send PUT request to update vote in backend
-        update_response = requests.put(f"{BASE_URL}/votes", json=updated_vote)
-        
-        if update_response.status_code == 200:
-            print("Vote updated successfully:", update_response.json())
+    # URL pointing to the locally running FastAPI application
+    url = f'http://127.0.0.1:8000/Votes/{influencer_id}'
+
+    # Making a PUT request to update the vote
+    try:
+        response = requests.put(url, json=vote_update_data)
+        if response.status_code == 200:
+            print('Vote updated successfully:', response.json())
+        elif response.status_code == 404:
+            print('Vote not found:', response.text)
         else:
-            print(f"Failed to update vote. Status code: {update_response.status_code}, Error: {update_response.text}")
-    
+            print('Failed to update vote:', response.status_code, response.text)
     except requests.ConnectionError as e:
-        print("Failed to connect:", e)
+        print('Failed to connect:', e)
+
+
 
 # Update a vote for influencer 18 and content 13 with a thumbs up
 
@@ -85,11 +80,12 @@ if __name__ == "__main__":
     get_influencers()
     # Fetch all content
     get_content()
-     # Update an existing vote (replace with actual influencer_id and content_id)
-    update_vote(18, 13, True)
-    update_vote(18, 13, False)
+    
+    # Example usage:
+    # To increment good vote (thumbs up) for influencer with ID 19
+    update_vote(19, True)
 
-    update_vote(19, 14, True)
-    update_vote(19, 14, False)
+    # To increment bad vote (thumbs down) for influencer with ID 1
+    update_vote(5, False)
 
    
