@@ -1,16 +1,18 @@
 # import the necessary packages
-import creds
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
 import pandas as pd
 from googleapiclient.errors import HttpError
+import os
 #import seaborn as sns
 
 # set up the YouTube API
 # creds.py contains the API key as variable YT_api
 # for security reasons, this file is not included in the repository
 # structure of the creds.py file:
+load_dotenv()
 
-API_KEY = creds.YT_api
+API_KEY = os.getenv(YT_api)
 # channel_ids is a list of channel ids for the influencers
 channel_ids = ['UCqECaJ8Gagnn7YCbPEzWH6g',
                 'UCs6eXM7s8Vl5WcECcRHc2qQ',
