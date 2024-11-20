@@ -272,6 +272,36 @@ def process_tmz_news_csv(connection, file_path):
     else:
         print(f"Missing required columns in file: {file_path}")
 
+#populate the Votes table with default values
+def populate_votes_table(connection):
+    print("Populating Votes table...")
+    insert_votes_query = """
+    INSERT INTO Votes (influencer_id, good_vote, bad_vote)
+    VALUES (%s, %s, %s)
+    """
+    check_votes_query = """
+    SELECT id FROM Votes WHERE influencer_id = %s
+    """
+    get_influencers_query = """
+    SELECT id FROM Influencers
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(get_influencers_query)
+            influencers = cursor.fetchall()
+            for influencer in influencers:
+                influencer_id = influencer[0]
+                #check if a row already exists for this influencer
+                cursor.execute(check_votes_query, (influencer_id,))
+                vote_exists = cursor.fetchone()
+                if not vote_exists:
+                    #insert a new row with default values for good_vote and bad_vote
+                    cursor.execute(insert_votes_query, (influencer_id, 0, 0))
+                    connection.commit()
+                    print(f"Votes entry created for influencer ID {influencer_id}.")
+    except Error as e:
+        print(f"Error populating Votes table: {e}")
+
 #main function that runs the scraping files and creates the database and tables
 def main():
     #run TMZ scraper
@@ -297,6 +327,8 @@ def main():
 
         #process influencers.csv file and add it to the Influencers table
         process_influencers_csv(connection, "scraping/influencers.csv")
+        #populate the Votes table
+        populate_votes_table(connection)
         #process youtube .csv file and add it to Videos table
         process_yt_videos_csv(connection, "scraping/yt_scraped.csv")
         #process TMZ data and add it to the News table
