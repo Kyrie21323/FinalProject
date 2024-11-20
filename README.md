@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-VibeCHECK is a web-based application that allows users to analyze influencer behavior and public sentiment. Users can view content related to influencers, such as YouTube videos and comments, and vote whether the influencer's vibe is 'good' or 'bad.' The system analyzes scraped data from YouTube and TMZ, stores it in a MySQL database. Users will be able to vote on influencer behavior based on publicly available content and comments in the future. (will be further developed to input datas from tmz too.)
+VibeCHECK is a web-based application that allows users to analyze influencer behavior and public sentiment. Users can view content related to influencers, from YouTube videos & comments and TMZ news articles, and vote whether the influencer's vibe is 'good' or 'bad.' The system analyzes scraped data from YouTube and TMZ and stores it in a MySQL database. Users will be able to vote on influencer behavior based on publicly available content and comments in the future. Our algorithm then returns a score that gauges the "vibe" of an influencer.
 
 ## Data Model
 
@@ -220,4 +220,3 @@ this will give us localhost link for the API access:
    GET /Votes: Retrieve all records from the votes table.\
    POST /Votes: Add a new vote to the votes table.\
    PUT /Votes/{influencer_id}: Add a new vote to the votes table for a specific influencer.\
-
