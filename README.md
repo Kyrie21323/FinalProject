@@ -9,12 +9,14 @@ VibeCHECK is a web-based application that allows users to analyze influencer beh
 The project follows a structured relational database schema using **MySQL**. The data is organized into four key tables:
 
 ### 1. **Influencers**
+
 - **id**: INT, Primary Key
 - **name**: VARCHAR, Influencer's name
 - **vibe_score**: DECIMAL, Calculated score based on votes
 - **image_url**: TEXT, URL for the influencer's profile image
 
 ### 2. **Videos**
+
 - **id**: INT, Primary Key
 - **influencer_id**: INT, Foreign Key references `influencers`
 - **url**: TEXT, Link to the video
@@ -23,6 +25,7 @@ The project follows a structured relational database schema using **MySQL**. The
 - **sentiment_score**: INT, Sentiment analysis score (to be implemented)
 
 ### 3. **News**
+
 - **id**: INT, Primary Key
 - **influencer_id**: INT, Foreign Key references `influencers`
 - **url**: TEXT, Link to the news article
@@ -31,6 +34,7 @@ The project follows a structured relational database schema using **MySQL**. The
 - **sentiment_score**: INT, Sentiment analysis score (to be implemented)
 
 ### 4. **Votes**
+
 - **id**: INT, Primary Key
 - **influencer_id**: INT, Foreign Key references `influencers`
 - **good_vote**: INT, Count of 'good' votes
@@ -62,7 +66,7 @@ While MongoDB offers flexibility in schema design, our need for structured data 
 
 1. **Clone the Repository**
    ```
-   git clone 
+   git clone
    ```
 2. **Navigate to the project directory**
    ```
@@ -81,9 +85,11 @@ While MongoDB offers flexibility in schema design, our need for structured data 
    pip install -r requirements.txt
    ```
 5. **Set up your .env file**
-  - Create a new file in the project root directory and name it .env
-  - Open the .env file in a text editor
-  - Add your MySQL connection details in the following format:
+
+- Create a new file in the project root directory and name it .env
+- Open the .env file in a text editor
+- Add your MySQL connection details in the following format:
+
 ```
 DB_HOST=your_mysql_host
 DB_USER=your_mysql_username
@@ -91,9 +97,12 @@ DB_PASS=your_mysql_password
 DB_NAME=your_database_name
 YT_api =your_youtubeapikey
 ```
-  - Replace the placeholders with your actual MySQL connection details
-  - Save and close the .env file
+
+- Replace the placeholders with your actual MySQL connection details
+- Save and close the .env file
+
 6. **Run the Scrapers and Database Setup**
+
 ```
 python main.py
 ```
@@ -115,37 +124,49 @@ python main.py
 ## Data Integration
 
 ### Youtube Data
-   - The project utilizes the YouTube Data API v3 to extract data from YouTube channels. This includes channel statistics, video details, and top comments. The following steps outline the process:
-   - What it Does: Scrapes data from a list of YouTube channels, including video titles, URLs, and top comments.
-   - Process:
-      - Fetches channel details using the YouTube Data API.
-      - Extracts the latest video and top comments.
-      - Stores the data in the Videos table in the database.
-    
+
+- The project utilizes the YouTube Data API v3 to extract data from YouTube channels. This includes channel statistics, video details, and top comments. The following steps outline the process:
+- What it Does: Scrapes data from a list of YouTube channels, including video titles, URLs, and top comments.
+- Process:
+  - Fetches channel details using the YouTube Data API.
+  - Extracts the latest video and top comments.
+  - Stores the data in the Videos table in the database.
+
 ### TMZ Data
-   - What it Does: Scrapes articles related to influencers from TMZ.
-   - Process:
-      - Searches TMZ for a predefined list of influencers.
-      - Extracts article titles, URLs, and content.
-      - Stores the data in the News table in the database.
+
+- What it Does: Scrapes articles related to influencers from TMZ.
+- Process:
+  - Searches TMZ for a predefined list of influencers.
+  - Extracts article titles, URLs, and content.
+  - Stores the data in the News table in the database.
 
 ### API Setup:
+
 - Obtain an API key from the Google Developer Console.
 - Use the googleapiclient.discovery library in Python to create a service object for interacting with the YouTube API.
+
 ### Fetching Channel Statistics:
+
 - Use the channels().list method to retrieve channel details such as subscriber count, view count, and video count.
 - Store this data in a structured format for analysis.
+
 ### Extracting Video Information:
+
 - Retrieve the latest video link from a channel's upload playlist using `playlistItems().list`.
 - Gather video statistics and metadata for further sentiment analysis.
+
 ### Sentiment Analysis:
+
 - Perform sentiment analysis on comments retrieved from videos using natural language processing (NLP) techniques.
 - Use this data to determine the general sentiment of viewers towards specific content or influencers.
+
 ### Data Storage and Visualization:
+
 - Store collected data in pandas DataFrames for easy manipulation and analysis.
 - For now we are exporting data to CSV files for reporting purposes, we have our database outlined and in future we'll store the data to the database according to the format outlined above.
 
 ### Future Enhancements
+
 - Integrate additional social media platforms for more comprehensive influencer monitoring.
 - Implement machine learning algorithms to predict future trends in influencer popularity.
 - Enhance user engagement features by allowing discussions or sharing of opinions within the app.
@@ -167,9 +188,10 @@ This FastAPI application provides RESTful API endpoints to access data from four
    ```bash
    git clone <repository-url>
    cd <repository-directory>
+   ```
 
 `pip install fastapi uvicorn mysql-connector-python python-dotenv pandas`
-or 
+or
 `pip install -r requirements.txt`
 
 DB_HOST=<your-database-host>
@@ -179,13 +201,16 @@ DB_NAME=<your-database-name>
 YT_api =<your-YouTube-API-Key>
 
 ## Running the Application
-Start the FastAPI Server
-- Use Uvicorn to run the FastAPI application:
-`uvicorn database_api:app --reload`
 
-this will give us localhost link for the API access: 
+Start the FastAPI Server
+
+- Use Uvicorn to run the FastAPI application:
+  `uvicorn database_api:app --reload`
+
+this will give us localhost link for the API access:
 
 ### Access API Endpoints
+
 - The following endpoints are available:\
    GET /Influencers: Retrieve all records from the influencers table.\
    GET /votes/{influencer_id}: Retrieve all votes for the specific influencer from the vote table.\
@@ -195,4 +220,4 @@ this will give us localhost link for the API access:
    GET /Votes: Retrieve all records from the votes table.\
    POST /Votes: Add a new vote to the votes table.\
    PUT /Votes/{influencer_id}: Add a new vote to the votes table for a specific influencer.\
-   
+

@@ -56,31 +56,6 @@ def scrape_tmz():
     
     return articles
 
-def fetch_article_content(url):
-    """Fetches and returns the main content of an article given its URL."""
-    try:
-        response = requests.get(url)
-        if response.status_code != 200:
-            print(f"Failed to retrieve content from {url}")
-            return "Failed to retrieve content"
-        
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Locate the section with the article content by the specified attributes
-        content_section = soup.find('section', id=lambda x: x and x.startswith("cb-"), attrs={'data-context': '{"section":"permalink","name":"text_block"}'})
-        if not content_section:
-            print(f"Content section not found for {url}")
-            return "Content section not found"
-        
-        # Extract the text within <p> tags inside the section
-        content_paragraphs = content_section.find_all('p')
-        content = " ".join(paragraph.get_text(strip=True) for paragraph in content_paragraphs)
-        
-        return content if content else "No content found"
-    except Exception as e:
-        print(f"Error fetching article content from {url}: {e}")
-        return "Error retrieving content"
-
 def save_to_csv(articles, filename="tmz_scraped.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
