@@ -89,6 +89,7 @@ DB_HOST=your_mysql_host
 DB_USER=your_mysql_username
 DB_PASS=your_mysql_password
 DB_NAME=your_database_name
+YT_api =your_youtubeapikey
 ```
   - Replace the placeholders with your actual MySQL connection details
   - Save and close the .env file
@@ -175,6 +176,7 @@ DB_HOST=<your-database-host>
 DB_USER=<your-database-user>
 DB_PASS=<your-database-password>
 DB_NAME=<your-database-name>
+YT_api =<your-YouTube-API-Key>
 
 ## Running the Application
 Start the FastAPI Server
@@ -185,8 +187,12 @@ this will give us localhost link for the API access:
 
 ### Access API Endpoints
 - The following endpoints are available:\
-   GET /influencers: Retrieve all records from the influencers table.\
-   GET /content: Retrieve all records from the content table.\
-   GET /comments: Retrieve all records from the comments table.\
-   GET /votes: Retrieve all records from the votes table.\
+   GET /Influencers: Retrieve all records from the influencers table.\
+   GET /votes/{influencer_id}: Retrieve all votes for the specific influencer from the vote table.\
+   GET /News: Retrieve all records from the comments table.\
+   GET /Votes: Retrieve all records from the votes table.\
+   GET /Videos: Retrieve all records from the videos table.\
+   GET /Votes: Retrieve all records from the votes table.\
+   POST /Votes: Add a new vote to the votes table.\
+   PUT /Votes/{influencer_id}: Add a new vote to the votes table for a specific influencer.\
    
