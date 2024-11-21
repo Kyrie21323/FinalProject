@@ -90,7 +90,7 @@ def normalize_sentiment(sentiment_score):
 
 # Define a function to calculate vibe score based on sentiment and vote scores
 def calculate_vibe_score(news_sentiment, video_sentiment, vote_score):
-    return round(0.5 * news_sentiment + 0.5 * video_sentiment + 0.5 * vote_score, 2)
+    return round(0.25 * news_sentiment + 0.25 * video_sentiment + 0.5 * vote_score, 2)
 
 # Create a dictionary to store vibe scores for each influencer_id
 vibe_scores = {}
