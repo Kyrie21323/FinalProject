@@ -81,7 +81,7 @@ def fetch_article_content(url):
         print(f"Error fetching article content from {url}: {e}")
         return "Error retrieving content"
 
-def save_to_csv(articles, filename="tmz_scraped.csv"):
+def save_to_csv(articles, filename="scraping/tmz_scraped.csv"):
     save_path = os.path.join(os.getcwd(), filename)
     
     # Load existing titles to avoid duplicates
@@ -94,7 +94,6 @@ def save_to_csv(articles, filename="tmz_scraped.csv"):
     
     # Filter new articles based on titles not in existing_titles
     new_articles = [article for article in articles if article[1].strip().lower() not in existing_titles]
-    print("New articles:", new_articles)
     
     # Append only new articles to the CSV
     if new_articles:
