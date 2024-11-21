@@ -38,7 +38,7 @@ channel_ids = ['UCqECaJ8Gagnn7YCbPEzWH6g',
 # setting up the YouTube API service by defining the API service name and version
 api_service_name = "youtube"
 api_version = "v3"
-client_secrets_file = "YOUR_CLIENT_SECRET_FILE.json"
+#client_secrets_file = "YOUR_CLIENT_SECRET_FILE.json"
 # creating the youtube variable that will be used to access the YouTube API
 youtube = build(api_service_name, api_version, developerKey=API_KEY)
 
@@ -122,7 +122,7 @@ def main():
         video_title, latest_video_link = get_latest_video_link(youtube, channel['playlist_id'])
         top_comments = get_top_comments(youtube, latest_video_link.split('=')[-1])
         
-        # Add each comment with channel info to final data
+        #add each comment with channel info to final data
         for comment in top_comments:
             final_data.append({
                 'Name': channel['Name'],
@@ -133,7 +133,7 @@ def main():
 
     # Convert the final data to a DataFrame and save to CSV
     final_df = pd.DataFrame(final_data)
-    final_df.to_csv('yt_scraped.csv', index=False)
+    final_df.to_csv('scraping/yt_scraped.csv', index=False)
     print("YouTube data scraped and saved to yt_scraped.csv.")
 
 if __name__ == "__main__":
