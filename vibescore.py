@@ -90,54 +90,113 @@ def normalize_sentiment(sentiment_score):
 
 # Define a function to calculate vibe score based on sentiment and vote scores
 def calculate_vibe_score(news_sentiment, video_sentiment, vote_score):
-    return round(0.5 * news_sentiment + 0.5 * video_sentiment + 0.5 * vote_score, 2)
+    return round(0.25 * news_sentiment + 0.25 * video_sentiment + 0.5 * vote_score, 2)
 
-# Create a dictionary to store vibe scores for each influencer_id
-vibe_scores = {}
+def get_data_as_dataframe(table_name):
+    """
+    Fetch data from a table and return it as a Pandas DataFrame.
+    """
+    return pd.read_sql_table(table_name, engine)
 
-# Iterate over each influencer in the Votes table
-for index, vote_row in Votes.iterrows():
-    influencer_id = vote_row['influencer_id']
+def update_vibe_scores():
+    """
+    Calculate and update vibe scores for all influencers in the database.
+    """
+    # Load data from the database into Pandas DataFrames
+    News = get_data_as_dataframe('News')
+    Videos = get_data_as_dataframe('Videos')
+    Votes = get_data_as_dataframe('Votes')
 
-    # Filter sentiment scores for the specific influencer
-    filtered_scores = News[News['influencer_id'] == influencer_id]['sentiment_score']
-    # Check if the filtered DataFrame is empty or if all values are NaN
-    if filtered_scores.empty or filtered_scores.isna().all():
-        avg_news_sentiment = 0.0  # Default to 0 if no valid scores exist
-    else:
-        avg_news_sentiment = filtered_scores.mean()  # Calculate the mean
-    
-    # # Fetch average sentiment scores for news articles related to this influencer
-    # avg_news_sentiment = News[News['influencer_id'] == influencer_id]['sentiment_score'].mean() or 0
-    
-    # Fetch average sentiment scores for videos related to this influencer
-    avg_video_sentiment = Videos[Videos['influencer_id'] == influencer_id]['sentiment_score'].mean() or 0
-    
-    # Normalize sentiment scores
-    normalized_news_sentiment = normalize_sentiment(avg_news_sentiment)
-    normalized_video_sentiment = normalize_sentiment(avg_video_sentiment)
-    
-    # Calculate vote score based on good and bad votes
-    vote_score = calculate_vote_score(vote_row['good_vote'], vote_row['bad_vote'])
-    
-    # Calculate final vibe score
-    vibe_score = calculate_vibe_score(normalized_news_sentiment, normalized_video_sentiment, vote_score)
-    
-    # Store the result in the dictionary with influencer_id as key and vibe score as value
-    vibe_scores[influencer_id] = vibe_score
+    # Create a dictionary to store vibe scores for each influencer_id
+    vibe_scores = {}
 
-# Now update the Vibe Score in the Influencers table for each influencer_id
-with engine.begin() as conn:
-    for influencer_id, vibe_score in vibe_scores.items():
-        print(f"Updating influencer {influencer_id} with vibe score {vibe_score}")
+    # Iterate over each influencer in the Votes table
+    for index, vote_row in Votes.iterrows():
+        influencer_id = vote_row['influencer_id']
+
+        # Fetch average sentiment scores for news articles related to this influencer
+        filtered_scores = News[News['influencer_id'] == influencer_id]['sentiment_score']
+        if filtered_scores.empty or filtered_scores.isna().all():
+            avg_news_sentiment = 0.0  # Default to 0 if no valid scores exist
+        else:
+            avg_news_sentiment = filtered_scores.mean()
         
-        # Create an update statement for each row based on its 'influencer_id'
-        stmt = (
-            update(influencers_table)
-            .where(influencers_table.c.id == influencer_id)  # Match by 'influencer_id'
-            .values(vibe_score=vibe_score)                             # Update 'vibe_score'
-        )
-        # Execute the update statement
-        conn.execute(stmt)
+        avg_video_sentiment = Videos[Videos['influencer_id'] == influencer_id]['sentiment_score'].mean() or 0
 
-print("Vibe scores updated successfully.")
+        # Normalize sentiment scores
+        normalized_news_sentiment = normalize_sentiment(avg_news_sentiment)
+        normalized_video_sentiment = normalize_sentiment(avg_video_sentiment)
+
+        # Calculate vote score based on good and bad votes
+        vote_score = calculate_vote_score(vote_row['good_vote'], vote_row['bad_vote'])
+
+        # Calculate final vibe score
+        vibe_score = calculate_vibe_score(normalized_news_sentiment, normalized_video_sentiment, vote_score)
+
+        # Store the result in the dictionary with influencer_id as key and vibe score as value
+        vibe_scores[influencer_id] = vibe_score
+
+    # Update the Vibe Score in the Influencers table for each influencer_id
+    with engine.begin() as conn:
+        for influencer_id, vibe_score in vibe_scores.items():
+            print(f"Updating influencer {influencer_id} with vibe score {vibe_score}")
+            stmt = (
+                update(influencers_table)
+                .where(influencers_table.c.id == influencer_id)  # Match by 'influencer_id'
+                .values(vibe_score=vibe_score)                 # Update 'vibe_score'
+            )
+            conn.execute(stmt)
+
+    print("Vibe scores updated successfully.")
+
+
+
+# # Create a dictionary to store vibe scores for each influencer_id
+# vibe_scores = {}
+
+# # Iterate over each influencer in the Votes table
+# for index, vote_row in Votes.iterrows():
+#     influencer_id = vote_row['influencer_id']
+
+#     # Filter sentiment scores for the specific influencer
+#     filtered_scores = News[News['influencer_id'] == influencer_id]['sentiment_score']
+#     # Check if the filtered DataFrame is empty or if all values are NaN
+#     if filtered_scores.empty or filtered_scores.isna().all():
+#         avg_news_sentiment = 0.0  # Default to 0 if no valid scores exist
+#     else:
+#         avg_news_sentiment = filtered_scores.mean()  # Calculate the mean
+    
+#     # # Fetch average sentiment scores for news articles related to this influencer
+#     # avg_news_sentiment = News[News['influencer_id'] == influencer_id]['sentiment_score'].mean() or 0
+    
+#     # Fetch average sentiment scores for videos related to this influencer
+#     avg_video_sentiment = Videos[Videos['influencer_id'] == influencer_id]['sentiment_score'].mean() or 0
+    
+#     # Normalize sentiment scores
+#     normalized_news_sentiment = normalize_sentiment(avg_news_sentiment)
+#     normalized_video_sentiment = normalize_sentiment(avg_video_sentiment)
+    
+#     # Calculate vote score based on good and bad votes
+#     vote_score = calculate_vote_score(vote_row['good_vote'], vote_row['bad_vote'])
+    
+#     # Calculate final vibe score
+#     vibe_score = calculate_vibe_score(normalized_news_sentiment, normalized_video_sentiment, vote_score)
+    
+#     # Store the result in the dictionary with influencer_id as key and vibe score as value
+#     vibe_scores[influencer_id] = vibe_score
+
+# # Now update the Vibe Score in the Influencers table for each influencer_id
+# with engine.begin() as conn:
+#     for influencer_id, vibe_score in vibe_scores.items():
+#         print(f"Updating influencer {influencer_id} with vibe score {vibe_score}")
+        
+#         # Create an update statement for each row based on its 'influencer_id'
+#         stmt = (
+#             update(influencers_table)
+#             .where(influencers_table.c.id == influencer_id)  # Match by 'influencer_id'
+#             .values(vibe_score=vibe_score)                             # Update 'vibe_score'
+#         )
+#         # Execute the update statement
+#         conn.execute(stmt)
+
+# print("Vibe scores updated successfully.")

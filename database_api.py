@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pymysql.err import IntegrityError
 import pymysql.cursors
+from fastapi import BackgroundTasks
+from vibescore import update_vibe_scores
 
 class VoteCreate(BaseModel):
     influencer_id: int
@@ -137,7 +139,7 @@ async def create_vote(vote: VoteCreate):
 
 # create the API endpoint to update the vote in the votes table
 @app.put("/Votes/{influencer_id}") # endpoint to update the vote in the votes table based on the influencer_id
-async def update_or_create_vote(influencer_id: int, vote_data: VoteUpdate):
+async def update_or_create_vote(influencer_id: int, vote_data: VoteUpdate, background_tasks: BackgroundTasks):
     connection = get_database_connection()
     if connection is None:
         raise HTTPException(status_code=500, detail="Could not connect to the database")
@@ -159,6 +161,8 @@ async def update_or_create_vote(influencer_id: int, vote_data: VoteUpdate):
                     (vote_data.good_vote, vote_data.bad_vote, influencer_id)
                 )
                 connection.commit()
+                # Run vibe score update in the background
+                background_tasks.add_task(update_vibe_scores)
                 return {"message": "Vote updated successfully"}
             else:
                 # If vote does not exist, insert a new row
@@ -170,6 +174,8 @@ async def update_or_create_vote(influencer_id: int, vote_data: VoteUpdate):
                     (influencer_id, vote_data.good_vote, vote_data.bad_vote)
                 )
                 connection.commit()
+                # Run vibe score update in the background
+                background_tasks.add_task(update_vibe_scores)
                 return {"message": "Vote created successfully"}
     except pymysql.MySQLError as e:
         raise HTTPException(status_code=500, detail=f"Error updating or creating vote: {e}")
