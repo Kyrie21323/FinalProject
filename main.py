@@ -64,7 +64,10 @@ def create_influencers_table(connection):
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         vibe_score DECIMAL(5, 2) DEFAULT 0.00,
-        image_url TEXT NOT NULL
+        image_url TEXT NOT NULL,
+        bio TEXT NOT NULL,
+        instagram TEXT NOT NULL,
+        youtube TEXT NOT NULL
     );
     """
     try:
@@ -139,8 +142,8 @@ def create_votes_table(connection):
 #add influencers into the Influencers table
 def add_influencers(connection, influencers_data):
     insert_influencer_query = """
-    INSERT INTO Influencers (name, image_url)
-    VALUES (%s, %s)
+    INSERT INTO Influencers (name, image_url, bio, instagram, youtube)
+    VALUES (%s, %s, %s, %s, %s)
     """
     check_influencer_query = "SELECT id FROM Influencers WHERE name = %s"
 
@@ -151,20 +154,28 @@ def add_influencers(connection, influencers_data):
                 cursor.execute(check_influencer_query, (row['Name'],))
                 result = cursor.fetchone()
                 if result is None:
-                    #insert the new influencer
-                    cursor.execute(insert_influencer_query, (row['Name'], row['Image_URL']))
+                    #insert the new influencer with all fields
+                    cursor.execute(insert_influencer_query, (
+                        row['Name'],
+                        row['Image_URL'],
+                        row['Bio'],
+                        row['Instagram'],
+                        row['YouTube']
+                    ))
                     connection.commit()
                     print(f"Influencer '{row['Name']}' added.")
+                else:
+                    print(f"Influencer '{row['Name']}' already exists in the database.")
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
 #process influencers.csv file
 def process_influencers_csv(connection, file_path):
     print(f"Processing influencers data from: {file_path}")
-    data = pd.read_csv(file_path, names=['Name', 'Image_URL'], header=0)                #use cleaned column names
+    data = pd.read_csv(file_path, header=0)                #use cleaned column names
     
     #ensure required columns are present
-    required_columns = {'Name', 'Image_URL'}
+    required_columns = {'Name', 'Image_URL', 'Bio', 'Instagram', 'YouTube'}
     if required_columns.issubset(data.columns):
         add_influencers(connection, data)
     else:
@@ -306,10 +317,10 @@ def populate_votes_table(connection):
 def main():
     #run TMZ scraper
     print("Running TMZ scraper...")
-    tmz_scraper_main()
+    #tmz_scraper_main()
     #run YouTube scraper
     print("Running YouTube scraper...")
-    youtube_scraper_main()
+    #youtube_scraper_main()
 
     #connect without specifying the database first to see if it doesn't exist
     connection = create_connection(with_database=False)
