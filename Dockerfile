@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # Start FastAPI server (this should be exactly what you do when working locally)
-CMD exec uvicorn database_api:app --host 0.0.0.0 --port ${PORT:-8080}
+#CMD exec uvicorn database_api:app --host 0.0.0.0 --port ${PORT:-8080}
