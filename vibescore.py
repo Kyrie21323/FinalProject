@@ -1,6 +1,7 @@
 # import the necessary libraries
 import os
 import pandas as pd
+import math
 from dotenv import load_dotenv
 import sqlalchemy
 from sqlalchemy import update, MetaData, Table
@@ -139,6 +140,9 @@ def update_vibe_scores():
     # Update the Vibe Score in the Influencers table for each influencer_id
     with engine.begin() as conn:
         for influencer_id, vibe_score in vibe_scores.items():
+            if math.isnan(vibe_score):
+                print(f"Vibe score for influencer {influencer_id} is NaN. Defaulting to 0.0.")
+                vibe_score = 0.0
             print(f"Updating influencer {influencer_id} with vibe score {vibe_score}")
             stmt = (
                 update(influencers_table)
