@@ -27,6 +27,8 @@ app = FastAPI() # create an instance of the FastAPI class which can be used by u
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://vibecheck-backend-57495040685.us-central1.run.app",
+    "https://vibecheck-frontend-57495040685.us-central1.run.app/",
 ]
 
 # Add CORS middleware
