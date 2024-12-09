@@ -361,10 +361,10 @@ def update_vibe_score_history(connection):
 def main():
     #run TMZ scraper
     print("Running TMZ scraper...")
-    #tmz_scraper_main()
+    tmz_scraper_main()
     #run YouTube scraper
     print("Running YouTube scraper...")
-    #youtube_scraper_main()
+    youtube_scraper_main()
 
     #connect without specifying the database first to see if it doesn't exist
     connection = create_connection(with_database=False)
