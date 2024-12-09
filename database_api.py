@@ -26,18 +26,12 @@ load_dotenv()
 
 app = FastAPI() # create an instance of the FastAPI class which can be used by uvicorn to run tha API in our local machine
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["https://vibecheck-frontend-57495040685.us-central1.run.app"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # function to connect to the mysql database
