@@ -14,6 +14,9 @@ The project follows a structured relational database schema using **MySQL**. The
 - **name**: VARCHAR, Influencer's name
 - **vibe_score**: DECIMAL, Calculated score based on votes
 - **image_url**: TEXT, URL for the influencer's profile image
+- **bio**: TEXT, basic information of the influencer
+- **instagram**: TEXT, url to the influencer's instagram account
+- **youtube**: TEXT, url to the influencer's youtube account
 
 ### 2. **Videos**
 
@@ -40,9 +43,16 @@ The project follows a structured relational database schema using **MySQL**. The
 - **good_vote**: INT, Count of 'good' votes
 - **bad_vote**: INT, Count of 'bad' votes
 
+### 5. **VibeScoreHistory**
+
+- **id**: INT, Primary Key
+- **influencer_id**: INT, Foreign Key references `influencers`
+- **vibe_score**: INT, vibescore of the influencer
+- **recorded_at**: DATETIME, the date time the vibescore was recorded
+
 ### ER Diagram
 
-![ER Diagram](resources/ER_Diagram.png)
+![ER Diagram](resources/ER_Diagram(2).png)
 
 ### SQL Database:
 

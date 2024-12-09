@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 import pandas as pd
+import time
 
 #import the scraper modules
 from scraping.tmz_scraper import main as tmz_scraper_main
@@ -64,7 +65,10 @@ def create_influencers_table(connection):
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         vibe_score DECIMAL(5, 2) DEFAULT 0.00,
-        image_url TEXT NOT NULL
+        image_url TEXT NOT NULL,
+        bio TEXT NOT NULL,
+        instagram TEXT NOT NULL,
+        youtube TEXT NOT NULL
     );
     """
     try:
@@ -136,11 +140,30 @@ def create_votes_table(connection):
     except Error as e:
         print(f"Error creating votes table: {e}")
 
+#create history table / logic is same as influencer table
+def create_vibe_score_history_table(connection):
+    print("Creating VibeScoreHistory table...")
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS VibeScoreHistory (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        influencer_id INT NOT NULL,
+        vibe_score DECIMAL(5, 2) NOT NULL,
+        recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (influencer_id) REFERENCES Influencers(id) ON DELETE CASCADE
+    );
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(create_table_query)
+            connection.commit()
+    except Error as e:
+        print(f"Error creating VibeScoreHistory table: {e}")
+
 #add influencers into the Influencers table
 def add_influencers(connection, influencers_data):
     insert_influencer_query = """
-    INSERT INTO Influencers (name, image_url)
-    VALUES (%s, %s)
+    INSERT INTO Influencers (name, image_url, bio, instagram, youtube)
+    VALUES (%s, %s, %s, %s, %s)
     """
     check_influencer_query = "SELECT id FROM Influencers WHERE name = %s"
 
@@ -151,20 +174,28 @@ def add_influencers(connection, influencers_data):
                 cursor.execute(check_influencer_query, (row['Name'],))
                 result = cursor.fetchone()
                 if result is None:
-                    #insert the new influencer
-                    cursor.execute(insert_influencer_query, (row['Name'], row['Image_URL']))
+                    #insert the new influencer with all fields
+                    cursor.execute(insert_influencer_query, (
+                        row['Name'],
+                        row['Image_URL'],
+                        row['Bio'],
+                        row['Instagram'],
+                        row['YouTube']
+                    ))
                     connection.commit()
                     print(f"Influencer '{row['Name']}' added.")
+                else:
+                    print(f"Influencer '{row['Name']}' already exists in the database.")
     except Error as e:
         print(f"Error inserting influencers: {e}")
 
 #process influencers.csv file
 def process_influencers_csv(connection, file_path):
     print(f"Processing influencers data from: {file_path}")
-    data = pd.read_csv(file_path, names=['Name', 'Image_URL'], header=0)                #use cleaned column names
+    data = pd.read_csv(file_path, header=0)                #use cleaned column names
     
     #ensure required columns are present
-    required_columns = {'Name', 'Image_URL'}
+    required_columns = {'Name', 'Image_URL', 'Bio', 'Instagram', 'YouTube'}
     if required_columns.issubset(data.columns):
         add_influencers(connection, data)
     else:
@@ -302,6 +333,30 @@ def populate_votes_table(connection):
     except Error as e:
         print(f"Error populating Votes table: {e}")
 
+def update_vibe_score_history(connection):
+    try:
+        #query to fetch current vibe scores
+        fetch_query = "SELECT id, vibe_score FROM Influencers"
+        insert_query = """
+        INSERT INTO VibeScoreHistory (influencer_id, vibe_score)
+        VALUES (%s, %s)
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(fetch_query)
+            influencers = cursor.fetchall()
+
+            for influencer in influencers:
+                influencer_id, vibe_score = influencer
+                cursor.execute(insert_query, (influencer_id, vibe_score))
+            
+            connection.commit()
+            print("Vibe scores updated successfully.")
+    
+    except Error as e:
+        print(f"Error updating vibe score history: {e}")
+
+
 #main function that runs the scraping files and creates the database and tables
 def main():
     #run TMZ scraper
@@ -324,6 +379,7 @@ def main():
         create_news_table(connection)                       #create content table
         create_videos_table(connection)                     #create comments table
         create_votes_table(connection)                      #create votes table
+        create_vibe_score_history_table(connection)         #create history table
 
         #process influencers.csv file and add it to the Influencers table
         process_influencers_csv(connection, "scraping/influencers.csv")
@@ -333,10 +389,10 @@ def main():
         process_yt_videos_csv(connection, "scraping/yt_scraped.csv")
         #process TMZ data and add it to the News table
         process_tmz_news_csv(connection, "scraping/tmz_scraped.csv")
+        update_vibe_score_history(connection)
         
         connection.close()
 
 #check if the script is run directly
 if __name__ == "__main__":
     main()
-
