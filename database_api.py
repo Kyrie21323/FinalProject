@@ -9,6 +9,7 @@ from pymysql.err import IntegrityError
 import pymysql.cursors
 from fastapi import BackgroundTasks
 from vibescore import update_vibe_scores
+from sentiment_analysis import analyze_and_update_news, analyze_and_update_videos
 
 class VoteCreate(BaseModel):
     influencer_id: int
@@ -104,11 +105,15 @@ async def get_vote(influencer_id: int):
 
 
 @app.get("/News") # endpoint to fetch the data from the content table
-async def get_content():
+async def get_content(background_tasks: BackgroundTasks):
+    # Run sentiment analysis in the background
+    background_tasks.add_task(analyze_and_update_news)
     return fetch_all_from_table("News")
 
 @app.get("/Videos") # endpoint to fetch the data from the comments table
-async def get_comments():
+async def get_comments(background_tasks: BackgroundTasks):
+    # Run sentiment analysis in the background
+    background_tasks.add_task(analyze_and_update_videos)
     return fetch_all_from_table("Videos")
 
 @app.get("/Votes") # endpoint to fetch the data from the votes table
