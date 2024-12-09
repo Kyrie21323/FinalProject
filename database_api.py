@@ -65,6 +65,11 @@ def fetch_all_from_table(table_name):
     finally:
         connection.close()
 
+# API endpoint that returns the VibescoreHistory table
+@app.get("/VibeScoreHistory")
+async def get_vibe_score_history():
+    return fetch_all_from_table("VibeScoreHistory")
+
 # create the API endpoints to fetch the data from the tables
 @app.get("/Influencers") # endpoint to fetch the data from the influencers table
 async def get_influencers(): # async function to fetch the data, async is used to make the function asynchronous which is useful when we are fetching data from the database or making API requests
