@@ -33,12 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://vibecheck-backend-57495040685.us-central1.run.app",
-    "https://vibecheck-frontend-57495040685.us-central1.run.app/",
-]
 
 # function to connect to the mysql database
 def get_database_connection():
