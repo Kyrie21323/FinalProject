@@ -6,7 +6,7 @@ VibeCHECK is a web-based application that allows users to analyze influencer beh
 
 ## Data Model
 
-The project follows a structured relational database schema using **MySQL**. The data is organized into four key tables:
+The project follows a structured relational database schema using **MySQL**. The data is organized into five key tables:
 
 ### 1. **Influencers**
 
