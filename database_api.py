@@ -29,7 +29,10 @@ app = FastAPI() # create an instance of the FastAPI class which can be used by u
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://vibecheck-frontend-57495040685.us-central1.run.app"],
+    allow_origins=[
+        "https://vibecheck-frontend-57495040685.us-central1.run.app",  # Deployed frontend
+        "http://localhost:3000",  # Local frontend for development
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
