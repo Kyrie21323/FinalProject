@@ -4,6 +4,20 @@
 
 VibeCHECK is a web-based application that allows users to analyze influencer behavior and public sentiment. Users can view content related to influencers, from YouTube videos & comments and TMZ news articles, and vote whether the influencer's vibe is 'good' or 'bad.' The system analyzes scraped data from YouTube and TMZ and stores it in a MySQL database. Users will be able to vote on influencer behavior based on publicly available content and comments. Our algorithm then returns a score that gauges the "vibe" of an influencer.
 
+## Project Structure
+The project consists of the following key components:
+### FastAPI Application (main.py)
+- Provides API endpoints for interacting with the database.
+- Includes background tasks for vibe score updates and sentiment analysis.
+### Vibe Score Calculation (vibescore.py)
+- Calculates vibe scores based on sentiment and vote data.
+- Updates the Influencers table with the calculated scores.
+### Sentiment Analysis (sentimentanalysis.py)
+- Performs sentiment analysis on news articles and video comments using TextBlob.
+- Updates the News and Videos tables with sentiment scores.
+### Database Integration
+- Uses SQLAlchemy for ORM (Object Relational Mapping) to interact with MySQL tables.
+- Reflects existing database tables dynamically.
 ## Data Model
 
 The project follows a structured relational database schema using **MySQL**. The data is organized into five key tables:
@@ -185,11 +199,18 @@ python main.py
 
 This FastAPI application provides RESTful API endpoints to access data from four tables in a MySQL database: `influencers`, `content`, `comments`, and `votes`.
 
+## Features
+- Fetch data from multiple database tables (Influencers, Votes, VibeScoreHistory, News, Videos).
+- Insert new votes into the Votes table.
+- Update or create votes dynamically while recalculating vibe scores in the background.
+- Perform sentiment analysis on news and videos in the background.
+
 ## Prerequisites
 
 - Python 3.7+
 - MySQL Server
 - Necessary Python packages listed in `requirements.txt`
+
 
 ## Installation
 
@@ -203,6 +224,9 @@ This FastAPI application provides RESTful API endpoints to access data from four
 `pip install fastapi uvicorn mysql-connector-python python-dotenv pandas`
 or
 `pip install -r requirements.txt`
+
+## Environment Variables
+The application uses environment variables to connect to the MySQL database. Create a .env file in the project directory with the following keys:
 
 DB_HOST=<your-database-host>
 DB_USER=<your-database-user>
@@ -230,3 +254,113 @@ this will give us localhost link for the API access:
    GET /Votes: Retrieve all records from the votes table.\
    POST /Votes: Add a new vote to the votes table.\
    PUT /Votes/{influencer_id}: Add a new vote to the votes table for a specific influencer.\
+
+
+1. Vibe Score History
+Fetch all records from the VibeScoreHistory table.
+- URL: /VibeScoreHistory
+- Method: GET
+- Response: List of vibe score history records.
+2. Influencers
+Fetch all records from the Influencers table.
+- URL: /Influencers
+- Method: GET
+- Response: List of influencer records.
+3. Votes
+- a. Fetch Votes by Influencer ID
+   Fetch vote details for a specific influencer.
+   - URL: /Votes/{influencer_id}
+   - Method: GET
+   - Path Parameter:
+      - influencer_id (int): ID of the influencer.
+   - Response: Vote record for the specified influencer.
+- b. Fetch All Votes
+   Fetch all records from the Votes table.
+   - URL: /Votes
+   - Method: GET
+   - Response: List of all vote records.
+- c. Add a New Vote
+   Insert a new vote into the database.
+   - URL: /Votes
+   - Method: POST
+   - Request Body:
+   {
+  "influencer_id": <int>,
+  "good_vote": <int>,
+  "bad_vote": <int>
+   }
+   - Response:
+   { "message": "Vote added successfully" }
+- d. Update or Create Vote
+   Update an existing vote or create a new one for an influencer.
+   - URL: /Votes/{influencer_id}
+   - Method: PUT
+   - Path Parameter:
+      - influencer_id (int): ID of the influencer.
+   - Request Body:
+   {
+  "good_vote": <int>,
+  "bad_vote": <int>
+   }
+4. News
+Fetch all records from the News table and trigger sentiment analysis in the background.
+- URL: /News
+- Method: GET
+- Response: List of news records.
+5. Videos
+Fetch all records from the Videos table and trigger sentiment analysis in the background.
+- URL: /Videos
+- Method: GET
+- Response: List of video records.
+
+## Background Tasks
+The API uses FastAPI's BackgroundTasks feature to perform certain operations asynchronously:
+1. Sentiment analysis for news and videos is triggered when fetching data from `/News` and `/Videos`.
+2. Vibe score updates are triggered when votes are updated or created via `/Votes/{influencer_id}`.
+
+## Key Functionalities
+### Sentiment Analysis
+Sentiment analysis is performed on text data (news articles and video comments) using TextBlob's polarity scoring.
+
+#### Process:
+- Fetch data from News or Videos table.
+- Calculate polarity using TextBlob.
+- Assign a scaled sentiment score (1–10) based on polarity.
+- Update the database with calculated sentiment scores.
+#### Functions:
+- `perform_sentiment_analysis(dataframe, text_column)`
+   - Performs TextBlob-based polarity scoring and assigns sentiment scores.
+- `update_sentiment_scores(table_name, dataframe)`
+   - Updates the database table with calculated sentiment scores.
+
+### Vibe Score Calculation
+Vibe scores are calculated as a weighted average of normalized news sentiment, video sentiment, and vote scores.
+
+#### Process:
+- Fetch data from `News`, `Videos`, and `Votes` tables.
+- Calculate normalized sentiment scores (0–1 scale).
+- Compute vote score as good votes/(good votes+bad votes).
+- Combine these metrics into a final vibe score:
+   Vibe Score = 0.25 × News Sentiment + 0.25 × Video Sentiment + 0.5×Vote Score
+- Update the Influencers table with calculated vibe scores.
+
+Functions:
+- `calculate_vibe_score(news_sentiment, video_sentiment, vote_score)`
+   Combines metrics into a final vibe score.
+- `update_vibe_scores()`
+   Updates vibe scores for all influencers in the database.
+
+## Error Handling
+The API includes robust error handling using FastAPI's HTTPException class. Common error scenarios include:
+- Database connection failures (500 Internal Server Error).
+- Missing data (404 Not Found).
+- SQL execution errors (500 Internal Server Error).
+
+## Dependencies
+The following Python libraries are used in this project:
+- FastAPI - For building APIs.
+- mysql.connector - For connecting to MySQL databases.
+- Pydantic - For request validation.
+- dotenv - For managing environment variables.
+- pymysql - For advanced MySQL operations.
+
