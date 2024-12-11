@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.sql import func
 load_dotenv()
 
+
 # create a connection to the database
 engine = sqlalchemy.create_engine(f'mysql+pymysql://{os.getenv("DB_USER")}:{os.getenv("DB_PASS")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}')
 SessionLocal = sessionmaker(bind=engine) # create a sessionmaker object so that we can create a session to interact with the database.
@@ -83,7 +84,10 @@ Votes = pd.DataFrame([row._asdict() for row in votes_query])
 
 # Define a function to calculate vote_score
 def calculate_vote_score(good_vote, bad_vote):
-    return (good_vote - bad_vote) / (good_vote + bad_vote + 1)
+    total_vote = good_vote + bad_vote
+    if total_vote == 0:
+        return 0  # Avoid division by zero
+    return good_vote / total_vote
 
 # Define a function to calculate normalized sentiment score (assuming sentiment_score is between 0-10)
 def normalize_sentiment(sentiment_score):
