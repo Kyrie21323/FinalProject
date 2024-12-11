@@ -363,4 +363,7 @@ The following Python libraries are used in this project:
 - Pydantic - For request validation.
 - dotenv - For managing environment variables.
 - pymysql - For advanced MySQL operations.
+- SQLAlchemy – For ORM-based database interaction.
+- TextBlob – For performing sentiment analysis.
+- Pandas – For data manipulation.
 
