@@ -228,11 +228,11 @@ or
 ## Environment Variables
 The application uses environment variables to connect to the MySQL database. Create a .env file in the project directory with the following keys:
 
-DB_HOST=<your-database-host>
-DB_USER=<your-database-user>
-DB_PASS=<your-database-password>
-DB_NAME=<your-database-name>
-YT_api =<your-YouTube-API-Key>
+`DB_HOST=<your-database-host>`
+`DB_USER=<your-database-user>`
+`DB_PASS=<your-database-password>`
+`DB_NAME=<your-database-name>`
+`YT_api =<your-YouTube-API-Key>`
 
 ## Running the Application
 
